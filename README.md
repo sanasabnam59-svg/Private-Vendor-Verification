@@ -2,6 +2,8 @@
 > **A Privacy-Preserving Zero-Knowledge Supplier Due Diligence & Accreditation Protocol on the Midnight Network**
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Private--Vendor--Verification-181717?style=for-the-badge&logo=github)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
+[![YouTube Demo](https://img.shields.io/badge/YouTube-Watch%20Demo%20Video-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/cV5JCAbGyZo)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20App-0070f3?style=for-the-badge&logo=vercel)](https://private-vendor-verification.vercel.app/)
 [![Midnight Network](https://img.shields.io/badge/Midnight-Preview%20Testnet-8b5cf6?style=for-the-badge)](https://preview.midnightexplorer.com/contracts/0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f)
 [![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-10b981?style=for-the-badge&logo=githubactions)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification/actions/workflows/ci.yml)
 [![Tests Passing](https://img.shields.io/badge/Tests-38%20Passing-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification/blob/main/tests/private_vendor_verification.test.ts)
@@ -19,6 +21,7 @@
   - [Level 2 (Waxing Crescent) Checklist](#-level-2-waxing-crescent-submission-checklist)
   - [Level 3 (Half Light) Checklist](#-level-3-half-light-submission-checklist)
 - [Privacy Model: What an Observer Can and Cannot Learn](#-privacy-model-what-an-observer-can-and-cannot-learn)
+- [Live Demo Video](#-live-demo-video)
 - [Key Features](#-key-features)
 - [Complete Setup & Installation Guide](#-complete-setup--installation-guide)
   - [1. Prerequisites](#1-prerequisites)
@@ -59,44 +62,44 @@ All application interfaces and live test executions are documented below:
 ### 1. Main Dashboard & System Overview
 The main dashboard displays real-time supplier accreditation statistics, active Midnight Preview connection status, protocol highlights, and the Level 2 / Level 3 Privacy Framework Matrix.
 
-![Main Dashboard](photos/main_dashboard.png)
+![Main Dashboard](photos/home-dashboard.png)
 
 ---
 
 ### 2. Confidential Vendor Due Diligence Portal (`/claim`)
 Suppliers configure their due diligence pledge using the interactive regulatory framework multi-selector (ISO 27001, SOC 2 Type II, GDPR, HIPAA, PCI-DSS, ESG Tier 1), jurisdiction, solvency tier, and compliance score slider. The client computes a SHA-256 credential commitment before running the `registerVendor()` zero-knowledge circuit.
 
-![Vendor Due Diligence Portal](photos/on-chain-registry-portal.png)
+![Vendor Due Diligence Portal](photos/submit-vendor.png)
 
 ---
 
-### 3. Zero-Knowledge Dual Verification Portal (`/claim#verify`)
-Allows enterprise buyers, compliance officers, and auditors to verify supplier accreditations instantly using either:
+### 3. Zero-Knowledge Dual Verification Portal & Explorer (`/explorer`)
+Allows enterprise buyers, compliance officers, and auditors to verify supplier accreditations and inspect live Midnight Preview ledger state instantly using either:
 - **Mode A (Zero-Knowledge)**: 32-Byte ZK Vendor Commitment Hash
 - **Mode B (On-Chain Audit)**: On-Chain Midnight Transaction Hash
 
-![Pledge Verification Portal](photos/verification_portal.png)
+![On-Chain Explorer & Verification](photos/on-chain-explorer.png)
 
 ---
 
 ### 4. Procurement Authority & Compliance Admin Console (`/admin`)
 Provides procurement directors and regulatory authorities with administrative oversight to anchor verification policies, adjust required compliance thresholds, and disqualify non-compliant suppliers via the `revokeVendorAccreditation()` circuit.
 
-![Procurement Admin Console](photos/admin_console.png)
+![Procurement Admin Console](photos/auth-console.png)
 
 ---
 
-### 5. Responsive Mobile Experience
+### 5. Responsive Mobile UI Experience
 Designed with modern mobile ergonomics, allowing procurement officers and suppliers to pledge and verify accreditations securely from handheld browsers with Lace / 1AM wallet support.
 
-![Responsive Mobile Interface](photos/mobile-ui.png)
+![Responsive Mobile Interface](photos/mobile-ui-dashboard.png)
 
 ---
 
-### 6. Automated Vitest Test Suite (38/38 Tests Passing)
+### 6. Automated Vitest Test Suite Execution (38/38 Tests Passing)
 Terminal execution showing 100% test pass rate across all 38 contract circuits, witness evaluations, score eligibility thresholds, dual verification engines, and invariant test suites.
 
-![Automated Test Suite Execution](photos/test-run.png)
+![Automated Test Suite Execution](photos/test-run-terminals.png)
 
 ---
 
@@ -108,6 +111,8 @@ Terminal execution showing 100% test pass rate across all 38 contract circuits, 
 - [x] **Observable Privacy Behavior**: Proves that vendor meets compliance score threshold (`vendorComplianceScore() >= minimumComplianceScore`, 75+) without revealing exact financial figures, balance sheets, or audit details.
 - [x] **Contract Deployed to Preprod/Preview with Verifiable Address**: Deployed on Midnight Preview at `0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f` (verified with live indexer queries returning 11,954 raw state bytes).
 - [x] **Public GitHub Repository with README**: [https://github.com/sanasabnam59-svg/Private-Vendor-Verification](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
+- [x] **Live Demo Link**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
+- [x] **Demo Video**: [https://youtu.be/cV5JCAbGyZo](https://youtu.be/cV5JCAbGyZo)
 - [x] **Minimum 8 Meaningful Commits**: Exceeded with 25+ structured commits strictly authored by `sanasabnam59-svg`.
 
 ---
@@ -137,6 +142,21 @@ The core design of Private Vendor Verification adheres to Midnight's selective d
 | **Procurement Authority Signature** | ✅ Public `authorityCommitment` anchor representing enterprise buyer network. | ❌ Authority master private signing key is never disclosed. |
 | **Disqualified / Revoked Status** | ✅ Public `lastRevokedCommitment` hash indicating disqualified status. | ❌ Proprietary reasons or internal audits remain confidential. |
 | **Replay Protection** | ✅ Monotonic counters `vendorCount` & `activeSession`. | ❌ Cross-session linkage of distinct supplier bids. |
+
+---
+
+## 🎥 Live Demo Video
+
+[![PVV Video Walkthrough](https://img.shields.io/badge/YouTube-Watch%20Live%20Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/cV5JCAbGyZo)
+
+▶️ **Watch the Full Video Walkthrough on YouTube**: [https://youtu.be/cV5JCAbGyZo](https://youtu.be/cV5JCAbGyZo)
+
+### What the Demo Highlights:
+1. **Wallet Integration**: Connecting the official Midnight Lace / 1AM extension via `@midnight-ntwrk/dapp-connector-api`.
+2. **Client-Side ZK Proof Generation**: Executing `registerVendor(Bytes<32>)` with 5 local private witnesses.
+3. **Compliance Score Assertion**: Mathematically validating `vendorComplianceScore() >= minimumComplianceScore` (75+) without revealing the exact internal audit rating.
+4. **Dual Verification Engine**: 1-click verification of vendor accreditations using either 32-byte ZK Commitment OR on-chain TxHash.
+5. **Procurement Authority Administration**: Executing `setRegistryAuthorityCommitment()`, `revokeVendorAccreditation()`, and session nonce rotation.
 
 ---
 
@@ -255,12 +275,12 @@ npm test
 ```text
  RUN  v3.2.7 D:/sd-project/RISE-IN/Private-Vendor-Verification
 
- ✓ tests/private_vendor_verification.test.ts (25 tests) 14ms
+ ✓ tests/private_vendor_verification.test.ts (25 tests) 10ms
  ✓ tests/counter.test.ts (13 tests) 6ms
 
  Test Files  2 passed (2)
       Tests  38 passed (38)
-   Duration  666ms
+   Duration  687ms
 ```
 
 ---
@@ -283,6 +303,15 @@ To generate an optimized production bundle:
 npm run build
 npm start
 ```
+
+#### Deploying to Vercel:
+1. Push your changes to your GitHub repository.
+2. Go to [Vercel Dashboard](https://vercel.com/dashboard) and click **"Add New Project"**.
+3. Import `sanasabnam59-svg/Private-Vendor-Verification`.
+4. Leave build settings as default (`Next.js`).
+5. Add the environment variables specified in Step 3.
+6. Click **Deploy**. Your dApp is now live at:
+   - **Production URL**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
 
 ---
 
@@ -412,6 +441,7 @@ export circuit incrementSession(): [] {
 | **Network** | **Midnight Preview Testnet** |
 | **Contract Address** | `0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f` |
 | **Block Explorer** | [View on Midnight Explorer](https://preview.midnightexplorer.com/contracts/0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f) |
+| **Live Web App** | [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/) |
 | **Raw State Length** | `11,954 bytes` (Verified on Preview Indexer v4) |
 | **Public Fields (8)** | `vendorCount`, `revokedCount`, `activeSession`, `registryId`, `authorityCommitment`, `lastVendorCommitment`, `lastRevokedCommitment`, `minimumComplianceScore` |
 | **Circuits (6)** | `registerVendor`, `verifyVendorAccreditation`, `revokeVendorAccreditation`, `setRegistryAuthorityCommitment`, `resetRegistryPolicy`, `incrementSession` |
@@ -446,12 +476,12 @@ Private-Vendor-Verification/
 │   ├── keys/                      # Prover and verifier ZK circuit keys
 │   └── zkir/                      # Zero-Knowledge Intermediate Representations
 ├── photos/                        # Application UI screenshots & test outputs
-│   ├── admin_console.png
-│   ├── main_dashboard.png
-│   ├── mobile-ui.png
-│   ├── on-chain-registry-portal.png
-│   ├── test-run.png
-│   └── verification_portal.png
+│   ├── auth-console.png
+│   ├── home-dashboard.png
+│   ├── mobile-ui-dashboard.png
+│   ├── on-chain-explorer.png
+│   ├── submit-vendor.png
+│   └── test-run-terminals.png
 ├── public/
 │   └── photos/                    # Synchronized static asset screenshots
 ├── scripts/
@@ -488,4 +518,5 @@ Private-Vendor-Verification/
 - **Developer**: `sanasabnam59-svg`
 - **Email**: `sanasabnam59@gmail.com`
 - **GitHub**: [@sanasabnam59-svg](https://github.com/sanasabnam59-svg)
+- **Live dApp**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
 - **License**: MIT

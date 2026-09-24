@@ -3,16 +3,16 @@
 
 ---
 
-## Executive Summary
+## Live Demo Video & Live dApp
 
-Enterprise procurement, global supply chains, government contracting, and defense ecosystems require stringent vendor accreditation:
-- Verification of certified compliance frameworks (ISO 27001, SOC 2 Type II, GDPR, PCI-DSS, ESG).
-- Verification of financial solvency and capitalization thresholds.
-- Verification of minimum compliance and audit scores.
+> **Demonstrates Midnight Lace wallet connection, proof creation, and successful `registerVendor()` circuit call from the frontend.**
 
-Under legacy protocols, vendors are forced to hand over confidential balance sheets, client rosters, and unredacted audit reports to procurement auditors, exposing sensitive corporate intelligence to competitors and data breaches.
+[![PVV Video Walkthrough](https://img.shields.io/badge/YouTube-Watch%20Live%20Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/cV5JCAbGyZo)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20App-0070f3?style=for-the-badge&logo=vercel)](https://private-vendor-verification.vercel.app/)
 
-**Private Vendor Verification (PVV)** resolves this tension by deploying Compact zero-knowledge smart contracts on the **Midnight Network**. Vendors mathematically prove compliance score thresholds (`vendorComplianceScore() >= minimumComplianceScore`) without exposing internal metrics, profit margins, or confidential business credentials on-chain.
+- **Watch on YouTube**: [https://youtu.be/cV5JCAbGyZo](https://youtu.be/cV5JCAbGyZo)
+- **Live dApp on Vercel**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
+- **Contract on Midnight Explorer**: [https://preview.midnightexplorer.com/contracts/0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f](https://preview.midnightexplorer.com/contracts/0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f)
 
 ---
 
@@ -75,3 +75,4 @@ Defined in `contracts/private_vendor_verification.compact` (Compact v0.23):
 - **Author**: sanasabnam59-svg
 - **Email**: sanasabnam59@gmail.com
 - **GitHub Repository**: [https://github.com/sanasabnam59-svg/Private-Vendor-Verification](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
+- **Live dApp**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
