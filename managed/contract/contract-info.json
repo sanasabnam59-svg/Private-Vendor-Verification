@@ -1,0 +1,86 @@
+{
+  "contractName": "PrivateVendorVerification",
+  "languageVersion": "0.23",
+  "circuits": {
+    "registerVendor": {
+      "params": [
+        {
+          "name": "expectedRegistryId",
+          "type": "Bytes<32>"
+        }
+      ],
+      "returns": "Bytes<32>"
+    },
+    "verifyVendorAccreditation": {
+      "params": [
+        {
+          "name": "commitment",
+          "type": "Bytes<32>"
+        }
+      ],
+      "returns": "Boolean"
+    },
+    "revokeVendorAccreditation": {
+      "params": [
+        {
+          "name": "commitment",
+          "type": "Bytes<32>"
+        }
+      ],
+      "returns": "[]"
+    },
+    "setRegistryAuthorityCommitment": {
+      "params": [
+        {
+          "name": "minimumComplianceScore",
+          "type": "Uint<32>"
+        }
+      ],
+      "returns": "[]"
+    },
+    "resetRegistryPolicy": {
+      "params": [
+        {
+          "name": "newRegistryId",
+          "type": "Bytes<32>"
+        },
+        {
+          "name": "newMinScore",
+          "type": "Uint<32>"
+        }
+      ],
+      "returns": "[]"
+    },
+    "incrementSession": {
+      "params": [],
+      "returns": "[]"
+    }
+  },
+  "witnesses": {
+    "vendorSecretKey": {
+      "returns": "Bytes<32>"
+    },
+    "vendorProofNonce": {
+      "returns": "Bytes<32>"
+    },
+    "vendorCredentialHash": {
+      "returns": "Bytes<32>"
+    },
+    "vendorComplianceScore": {
+      "returns": "Uint<32>"
+    },
+    "authoritySigningKey": {
+      "returns": "Bytes<32>"
+    }
+  },
+  "ledger": {
+    "vendorCount": "Counter",
+    "revokedCount": "Counter",
+    "activeSession": "Counter",
+    "registryId": "Bytes<32>",
+    "authorityCommitment": "Bytes<32>",
+    "lastVendorCommitment": "Bytes<32>",
+    "lastRevokedCommitment": "Bytes<32>",
+    "minimumComplianceScore": "Uint<32>"
+  }
+}
