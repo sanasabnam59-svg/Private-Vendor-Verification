@@ -1,0 +1,67 @@
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+export ledger vendorCount: Counter;
+export ledger revokedCount: Counter;
+export ledger activeSession: Counter;
+export ledger registryId: Bytes<32>;
+export ledger authorityCommitment: Bytes<32>;
+export ledger lastVendorCommitment: Bytes<32>;
+export ledger lastRevokedCommitment: Bytes<32>;
+export ledger minimumComplianceScore: Uint<32>;
+
+witness vendorSecretKey(): Bytes<32>;
+witness vendorProofNonce(): Bytes<32>;
+witness vendorCredentialHash(): Bytes<32>;
+witness vendorComplianceScore(): Uint<32>;
+witness authoritySigningKey(): Bytes<32>;
+
+export circuit registerVendor(expectedRegistryId: Bytes<32>): Bytes<32> {
+    assert(registryId == expectedRegistryId, "Registry program ID mismatch");
+    assert(vendorComplianceScore() >= minimumComplianceScore, "Vendor does not meet minimum compliance or eligibility score");
+    assert(vendorProofNonce() != [0; 32], "Invalid zero entropy nonce");
+
+    const commitment = persistent_hash<Vector<4, Bytes<32>>>([
+        expectedRegistryId,
+        vendorSecretKey(),
+        vendorProofNonce(),
+        vendorCredentialHash()
+    ]);
+
+    vendorCount.increment(1);
+    lastVendorCommitment = commitment;
+    return commitment;
+}
+
+export circuit verifyVendorAccreditation(commitment: Bytes<32>): Boolean {
+    return commitment == lastVendorCommitment && commitment != lastRevokedCommitment;
+}
+
+export circuit revokeVendorAccreditation(commitment: Bytes<32>): [] {
+    assert(
+        persistent_hash<Bytes<32>>(authoritySigningKey()) == authorityCommitment,
+        "Unauthorized procurement authority: invalid signing key"
+    );
+    lastRevokedCommitment = commitment;
+    revokedCount.increment(1);
+}
+
+export circuit setRegistryAuthorityCommitment(minScore: Uint<32>): [] {
+    assert(minScore > 0, "Minimum compliance score must be positive");
+    authorityCommitment = persistent_hash<Bytes<32>>(authoritySigningKey());
+    minimumComplianceScore = minScore;
+}
+
+export circuit resetRegistryPolicy(newRegistryId: Bytes<32>, newMinScore: Uint<32>): [] {
+    assert(
+        persistent_hash<Bytes<32>>(authoritySigningKey()) == authorityCommitment,
+        "Unauthorized procurement authority: invalid signing key"
+    );
+    registryId = newRegistryId;
+    minimumComplianceScore = newMinScore;
+}
+
+export circuit incrementSession(): [] {
+    activeSession.increment(1);
+}
