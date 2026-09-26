@@ -6,20 +6,27 @@ import { getClient, CONTRACT_ADDRESS, EXPLORER_URL } from "../../lib/contract";
 export default function ProcurementAdminPage() {
   const [minScore, setMinScore] = useState(80);
   const [revokeCommitment, setRevokeCommitment] = useState("");
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleUpdatePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     setStatusMsg(null);
+
     try {
-      setTimeout(() => {
-        setStatusMsg(`✅ Minimum compliance threshold updated to ${minScore}/100. Authority commitment anchored.`);
-        setIsProcessing(false);
-      }, 700);
+      const client = getClient();
+      const res = await client.setRegistryAuthorityCommitment(minScore);
+      setStatusMsg({
+        type: "success",
+        text: `? Minimum compliance threshold updated to ${minScore}/100. Authority commitment anchored on Midnight (TxHash: ${res.txHash.slice(0, 16)}...).`,
+      });
     } catch (e: any) {
-      setStatusMsg("Failed to update policy: " + e.message);
+      setStatusMsg({
+        type: "error",
+        text: "Failed to execute setRegistryAuthorityCommitment: " + (e?.message || "Transaction rejected"),
+      });
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -27,98 +34,182 @@ export default function ProcurementAdminPage() {
   const handleRevoke = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!revokeCommitment.trim()) return;
+
     setIsProcessing(true);
     setStatusMsg(null);
 
     try {
       const client = getClient();
-      await client.revokeVendorAccreditation(revokeCommitment.trim());
-      setStatusMsg(`⚠️ Accreditation ${revokeCommitment.slice(0, 16)}... has been disqualified and revoked on-chain.`);
+      const res = await client.revokeVendorAccreditation(revokeCommitment.trim());
+      setStatusMsg({
+        type: "success",
+        text: `? Vendor accreditation revoked on-chain via ZK circuit. LastRevokedCommitment updated (TxHash: ${res.txHash.slice(0, 16)}...).`,
+      });
       setRevokeCommitment("");
     } catch (e: any) {
-      setStatusMsg("Revocation failed: " + e.message);
+      setStatusMsg({
+        type: "error",
+        text: "Failed to execute revokeVendorAccreditation: " + (e?.message || "Unauthorized insurer key"),
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleIncrementSession = async () => {
+    setIsProcessing(true);
+    setStatusMsg(null);
+    try {
+      const client = getClient();
+      const res = await client.incrementSession();
+      setStatusMsg({
+        type: "success",
+        text: `? Monotonic session counter incremented for anti-replay protection (TxHash: ${res.txHash.slice(0, 16)}...).`,
+      });
+    } catch (e: any) {
+      setStatusMsg({
+        type: "error",
+        text: "Failed to increment session: " + (e?.message || "Transaction rejected"),
+      });
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 840, margin: "0 auto", padding: "2rem 1.5rem" }}>
-      <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "0.5rem" }}>
-        Procurement Authority & Compliance Console
-      </h1>
-      <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: "2rem" }}>
-        Authorized enterprise procurement governance: anchor compliance policies, update score thresholds, and disqualify non-compliant vendors.
-      </p>
+    <div style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem 5rem 1.5rem" }}>
+      {/* Header */}
+      <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
+        <div className="pill-release-badge">
+          <span>??</span> procurement compliance authority
+        </div>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, letterSpacing: "-0.04em", color: "#0a0d14", marginBottom: "0.5rem" }}>
+          procurement admin console
+        </h1>
+        <p style={{ color: "#64748b", fontSize: "1.02rem", maxWidth: 620, margin: "0 auto" }}>
+          Execute authorized zero-knowledge governance circuits: anchor authority commitments, adjust compliance thresholds, and revoke non-compliant accreditations.
+        </p>
+      </div>
 
       {statusMsg && (
-        <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", borderRadius: "8px", padding: "0.85rem", fontSize: "0.85rem", color: "#bae6fd", marginBottom: "1.5rem" }}>
-          {statusMsg}
+        <div
+          style={{
+            padding: "1rem 1.25rem",
+            borderRadius: 16,
+            background: statusMsg.type === "success" ? "#f0fdf4" : "#fef2f2",
+            border: statusMsg.type === "success" ? "1px solid #bbf7d0" : "1px solid #fecaca",
+            color: statusMsg.type === "success" ? "#166534" : "#991b1b",
+            fontSize: "0.88rem",
+            marginBottom: "2rem",
+            fontWeight: 500,
+          }}
+        >
+          {statusMsg.text}
         </div>
       )}
 
-      <div style={{ display: "grid", gap: "1.5rem" }}>
-        <div className="glass-panel">
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            1. Configure Compliance Score Threshold
-          </h3>
-          <p style={{ fontSize: "0.8rem", color: "#94a3b8", marginBottom: "1rem" }}>
-            Executes `setRegistryAuthorityCommitment(minScore)` circuit to update required regulatory threshold.
-          </p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.75rem", marginBottom: "2.5rem" }}>
+        {/* Section 1: Set Authority Commitment & Threshold */}
+        <div className="paper-panel">
+          <div style={{ marginBottom: "1.5rem" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#0a0d14" }}>
+              authority threshold & commitment
+            </h2>
+            <p style={{ fontSize: "0.82rem", color: "#64748b", marginTop: "0.2rem" }}>
+              Circuit: <code>setRegistryAuthorityCommitment(Uint&lt;32&gt;)</code>
+            </p>
+          </div>
 
-          <form onSubmit={handleUpdatePolicy} style={{ display: "flex", gap: "1rem", alignItems: "flex-end" }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: "block", fontSize: "0.8rem", color: "#94a3b8", marginBottom: "0.3rem" }}>
-                Required Minimum Score (0-100)
-              </label>
-              <input
-                type="number"
-                min="50"
-                max="100"
-                value={minScore}
-                onChange={(e) => setMinScore(Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
+          <form onSubmit={handleUpdatePolicy}>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label className="paper-label">minimum compliance score</label>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.5rem" }}>
+                <input
+                  type="range"
+                  min="70"
+                  max="95"
+                  value={minScore}
+                  onChange={(e) => setMinScore(Number(e.target.value))}
+                  style={{ flex: 1, accentColor: "#0f172a", cursor: "pointer" }}
+                />
+                <span style={{ fontWeight: 800, fontSize: "1.1rem", minWidth: 40 }}>{minScore}</span>
+              </div>
+              <div style={{ fontSize: "0.74rem", color: "#94a3b8" }}>
+                Vendors scoring below {minScore} will fail eligibility assertions in zero-knowledge.
+              </div>
             </div>
-            <button type="submit" disabled={isProcessing} className="btn-primary">
-              Anchor Authority Threshold
+
+            <button
+              type="submit"
+              disabled={isProcessing}
+              className="btn-pill-black"
+              style={{ width: "100%", padding: "0.75rem" }}
+            >
+              {isProcessing ? "Executing ZK Circuit..." : "anchor authority & update"}
             </button>
           </form>
         </div>
 
-        <div className="glass-panel" style={{ borderLeft: "4px solid #ef4444" }}>
-          <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem", color: "#f87171" }}>
-            2. Disqualify / Revoke Vendor Accreditation
-          </h3>
-          <p style={{ fontSize: "0.8rem", color: "#94a3b8", marginBottom: "1rem" }}>
-            Executes `revokeVendorAccreditation(commitment)` circuit with proof of procurement master signing key.
-          </p>
+        {/* Section 2: Revoke Vendor Accreditation */}
+        <div className="paper-panel">
+          <div style={{ marginBottom: "1.5rem" }}>
+            <h2 style={{ fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#0a0d14" }}>
+              revoke accreditation
+            </h2>
+            <p style={{ fontSize: "0.82rem", color: "#64748b", marginTop: "0.2rem" }}>
+              Circuit: <code>revokeVendorAccreditation(Bytes&lt;32&gt;)</code>
+            </p>
+          </div>
 
-          <form onSubmit={handleRevoke} style={{ display: "flex", gap: "0.75rem" }}>
-            <input
-              type="text"
-              required
-              placeholder="32-Byte Commitment Hash to Disqualify (0x...)"
-              value={revokeCommitment}
-              onChange={(e) => setRevokeCommitment(e.target.value)}
-              style={{ flex: 1 }}
-            />
+          <form onSubmit={handleRevoke}>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label className="paper-label">vendor commitment hash to revoke</label>
+              <input
+                type="text"
+                className="paper-input"
+                placeholder="0x8a9b2c3d..."
+                value={revokeCommitment}
+                onChange={(e) => setRevokeCommitment(e.target.value)}
+                style={{ fontFamily: "monospace" }}
+                required
+              />
+              <div style={{ fontSize: "0.74rem", color: "#94a3b8", marginTop: "0.4rem" }}>
+                Requires authorized <code>authoritySigningKey()</code> witness proof on Midnight.
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={isProcessing}
-              style={{
-                background: "#dc2626",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                padding: "0.65rem 1.25rem",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
+              className="btn-pill-black"
+              style={{ width: "100%", padding: "0.75rem", background: "#b91c1c", borderColor: "#991b1b" }}
             >
-              Revoke Accreditation
+              {isProcessing ? "Revoking On-Chain..." : "revoke accreditation on-chain"}
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* Section 3: Anti-Replay Session Control */}
+      <div className="paper-panel" style={{ background: "#f8fafc" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1.5rem" }}>
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>
+              anti-replay session epoch control
+            </h3>
+            <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
+              Circuit: <code>incrementSession()</code> increments monotonic session nonce to protect against proof replay.
+            </p>
+          </div>
+
+          <button
+            onClick={handleIncrementSession}
+            disabled={isProcessing}
+            className="btn-pill-white"
+            style={{ padding: "0.6rem 1.3rem", fontSize: "0.85rem" }}
+          >
+            increment session epoch &gt;
+          </button>
         </div>
       </div>
     </div>

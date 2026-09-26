@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./ClientLayout";
 
-const inter = Inter({ subsets: ["latin"] });
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Private Vendor Verification (PVV) | Midnight ZK Protocol",
-  description: "Privacy-preserving zero-knowledge supplier due diligence, compliance scoring, and accreditation protocol on the Midnight Network.",
+  title: "xvendor // Private Vendor Verification | Midnight Network",
+  description: "New ways to verify vendors. Privacy-preserving zero-knowledge supplier due diligence, compliance scoring, and accreditation protocol on Midnight Network.",
 };
 
 export default function RootLayout({
@@ -16,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className={plusJakarta.variable}>
+      <body className={plusJakarta.className}>
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

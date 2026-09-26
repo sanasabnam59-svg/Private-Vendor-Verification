@@ -8,13 +8,7 @@ const NETWORK_CONFIG = {
   indexerUrl: 'https://indexer.preview.midnight.network/api/v4/graphql',
 };
 
-async function deployPVVContract() {
-  return {
-    contractAddress: CONTRACT_ADDRESS,
-    network: 'preview',
-    status: 'deployed'
-  };
-}
+import { deployPVVContract, CANONICAL_DEPLOYMENT } from '../src/integration/deploy';
 
 function toBytes32(str: string = 'test'): Uint8Array {
   const enc = new TextEncoder().encode(str);
@@ -214,8 +208,8 @@ describe('Private Vendor Verification (PVV) - Invariant Validation Suite', () =>
   });
 
   it('12. Authoritative deployPVVContract returns the verified contract address', async () => {
-    const res = await deployPVVContract();
-    expect(res.contractAddress).toBe('0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f');
+    await expect(deployPVVContract(undefined as any)).rejects.toThrow('ContractProviders are strictly required');
+    expect(CANONICAL_DEPLOYMENT.contractAddress).toBe('0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f');
   });
 
   it('13. Encoding Helpers: bytesToHex and hexToBytes round-trip correctly', () => {

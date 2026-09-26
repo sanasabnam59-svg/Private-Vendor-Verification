@@ -1,4 +1,4 @@
-# 🏢 Private Vendor Verification (PVV)
+﻿# 🛡️ Private Vendor Verification (PVV)
 > **A Privacy-Preserving Zero-Knowledge Supplier Due Diligence & Accreditation Protocol on the Midnight Network**
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Private--Vendor--Verification-181717?style=for-the-badge&logo=github)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
@@ -9,13 +9,14 @@
 [![Tests Passing](https://img.shields.io/badge/Tests-38%20Passing-brightgreen?style=for-the-badge&logo=vitest)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification/blob/main/tests/private_vendor_verification.test.ts)
 [![Framework](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org)
 [![Compact Language](https://img.shields.io/badge/Compact-v0.23-e11d48?style=for-the-badge)](https://midnight.network)
-[![Node.js Version](https://img.shields.io/badge/Node.js-v20%2B-10b981?style=for-the-badge&logo=nodedotjs)](https://nodejs.org)
+[![Design](https://img.shields.io/badge/Design-xpaper%203D%20Minimalist-000000?style=for-the-badge)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 ---
 
-## 📑 Table of Contents
+## 📋 Table of Contents
 - [Executive Overview](#-executive-overview)
+- [Design Aesthetics: xpaper 3D Minimalist Experience](#-design-aesthetics-xpaper-3d-minimalist-experience)
 - [Application Showcase & UI Screenshots](#-application-showcase--ui-screenshots)
 - [Level 2 & Level 3 Compliance Summary](#-level-2--level-3-compliance-summary)
   - [Level 2 (Waxing Crescent) Checklist](#-level-2-waxing-crescent-submission-checklist)
@@ -45,22 +46,36 @@
 
 ---
 
-## 🏢 Executive Overview
+## 🛡️ Executive Overview
 
 **Private Vendor Verification (PVV)** is an enterprise-grade, privacy-first decentralized protocol built on the **Midnight Network**. Leveraging Compact zero-knowledge (ZK) smart contracts and the official **Midnight.js SDK** (`@midnight-ntwrk/dapp-connector-api`, `@midnight-ntwrk/midnight-js-network-id`, `@midnight-ntwrk/compact-runtime`, `@midnight-ntwrk/midnight-js-contracts`), PVV transforms enterprise supplier due diligence and regulatory accreditation.
 
 In traditional procurement ecosystems, prospective vendors must share unencrypted balance sheets, internal profit margins, and unredacted audit reports to prove solvency and cybersecurity compliance. This exposes suppliers to corporate espionage, data breaches, and pricing leverage by intermediaries. **PVV resolves this by executing ZK-SNARK proofs client-side in browser memory.**
 
-> **Vendors mathematically prove compliance score qualification (score &ge; 75/100) and regulatory framework certifications without disclosing their financial records, proprietary trade secrets, or client rosters on-chain.**
+> **Vendors mathematically prove compliance score qualification (score ≥ 75/100) and regulatory framework certifications without disclosing their financial records, proprietary trade secrets, or client rosters on-chain.**
 
 ---
 
-## 🖼️ Application Showcase & UI Screenshots
+## 🎨 Design Aesthetics: xpaper 3D Minimalist Experience
+
+The frontend is built with a bespoke **xpaper 3D minimalist design system** crafted with mathematical elegance:
+- **Luminous Pure Palette**: Clean paper whites (`#fbfcfd`, `#f8fafc`) accented by deep obsidian blacks (`#09090b`) and subtle slate contours (`#e2e8f0`).
+- **Plus Jakarta Sans Geometric Typography**: Ultra-bold weights (800) with tight tracking (`-0.04em`) and lowercase architectural headers (`new ways to verify vendors`).
+- **Interactive Three.js 3D WebGL Paper Sculpture**: Layered cascading curved paper ribbons that gently float and respond to mouse parallax in real time via high-precision `MeshPhysicalMaterial` shaders.
+- **Curled Paper Corner Stat Cards**: Custom CSS paper-peeling effect with layered shadows:
+  - Top-right paper curl card: **`200 satisfied businesses`**
+  - Bottom-right paper curl card: **`1 million evaluation startups · 70+`**
+- **Matte Obsidian Pill Badges & Buttons**: Floating pill release badge (`✧ the new and improved 2.0v release >`), tactile matte black primary button (`btn-pill-black`), and frosted white secondary button (`btn-pill-white`).
+- **Harmonized Across All Pages**: The aesthetic extends consistently across the Homepage (`/`), Vendor Due Diligence Portal (`/claim`), Procurement Authority Admin (`/admin`), and Real-Time On-Chain Explorer (`/explorer`).
+
+---
+
+## 📸 Application Showcase & UI Screenshots
 
 All application interfaces and live test executions are documented below:
 
 ### 1. Main Dashboard & System Overview
-The main dashboard displays real-time supplier accreditation statistics, active Midnight Preview connection status, protocol highlights, and the Level 2 / Level 3 Privacy Framework Matrix.
+The main dashboard features the interactive 3D WebGL paper sculpture ribbons, live Midnight Preview connection status, curled paper stat cards, protocol metrics, and the Level 2 / Level 3 Privacy Framework Matrix.
 
 ![Main Dashboard](photos/home-dashboard.png)
 
@@ -103,9 +118,9 @@ Terminal execution showing 100% test pass rate across all 38 contract circuits, 
 
 ---
 
-## 🏆 Level 2 & Level 3 Compliance Summary
+## ✅ Level 2 & Level 3 Compliance Summary
 
-### 🌔 Level 2 (Waxing Crescent) Submission Checklist
+### 🔘 Level 2 (Waxing Crescent) Submission Checklist
 - [x] **Lace Wallet Connect / Disconnect Implemented**: Interactive wallet connection modal supporting official **Midnight Lace Wallet** and **1AM Wallet** with session state, address truncation, and disconnect lifecycle.
 - [x] **Circuit Called Successfully from Frontend**: Real Compact circuits executed from UI (`registerVendor`, `verifyVendorAccreditation`, `revokeVendorAccreditation`, `setRegistryAuthorityCommitment`, `resetRegistryPolicy`, `incrementSession`).
 - [x] **Observable Privacy Behavior**: Proves that vendor meets compliance score threshold (`vendorComplianceScore() >= minimumComplianceScore`, 75+) without revealing exact financial figures, balance sheets, or audit details.
@@ -117,8 +132,8 @@ Terminal execution showing 100% test pass rate across all 38 contract circuits, 
 
 ---
 
-### 🌗 Level 3 (Half Light) Submission Checklist
-- [x] **Polished, Production-Grade dApp**: Modern glassmorphic Next.js 14 UI with clean typography, framework multi-select, client-side SHA-256 credential hashing, 1-click dual verification, and real-time explorer.
+### 🔘 Level 3 (Half Light) Submission Checklist
+- [x] **Polished, Production-Grade dApp**: Bespoke xpaper 3D minimalist Next.js 14 UI with Plus Jakarta Sans typography, Three.js 3D WebGL paper wave sculpture, paper-peel corner cards, client-side Web Crypto SHA-256 credential hashing, 1-click dual verification, and real-time explorer.
 - [x] **Approved Idea from Provided Idea List**: **Age / Eligibility Gate & Confidential Credentials** applied to Private Vendor Due Diligence & Legal Compliance Verification (see [PROPOSAL.md](PROPOSAL.md)).
 - [x] **Minimum 3 Tests Passing**: **38 tests passing (100%)** across `tests/private_vendor_verification.test.ts` and `tests/counter.test.ts`.
 - [x] **CI/CD Pipeline Running**: GitHub Actions workflow at [`.github/workflows/ci.yml`](.github/workflows/ci.yml) validating compilation, tests, and build on every push.
@@ -145,7 +160,7 @@ The core design of Private Vendor Verification adheres to Midnight's selective d
 
 ---
 
-## 🎥 Live Demo Video
+## 🎬 Live Demo Video
 
 [![PVV Video Walkthrough](https://img.shields.io/badge/YouTube-Watch%20Live%20Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/cV5JCAbGyZo)
 
@@ -160,7 +175,7 @@ The core design of Private Vendor Verification adheres to Midnight's selective d
 
 ---
 
-## ✨ Key Features
+## 🚀 Key Features
 
 - **Zero-Knowledge Vendor Accreditation**: Secret keys, entropy nonces, and proprietary audit data remain strictly isolated inside browser memory.
 - **On-Chain Compliance Score Gate**: Proves qualification threshold (75+) without exposing internal audit ratings.
@@ -275,12 +290,12 @@ npm test
 ```text
  RUN  v3.2.7 D:/sd-project/RISE-IN/Private-Vendor-Verification
 
- ✓ tests/private_vendor_verification.test.ts (25 tests) 10ms
- ✓ tests/counter.test.ts (13 tests) 6ms
+ ✓ tests/private_vendor_verification.test.ts (25 tests) 11ms
+ ✓ tests/counter.test.ts (13 tests) 8ms
 
  Test Files  2 passed (2)
       Tests  38 passed (38)
-   Duration  687ms
+   Duration  1.49s
 ```
 
 ---
@@ -320,17 +335,17 @@ npm start
 ```text
 [ Prospective Vendor / Supplier ]
         │
-        ├── 1. Connects Midnight Lace / 1AM Wallet
-        ├── 2. Navigates to /claim (Verify Vendor)
-        ├── 3. Selects Frameworks (ISO, SOC 2) & Enters Score (>= 75)
-        ├── 4. Client generates single-use salt & SHA-256 Credential Hash
-        ├── 5. ZK Circuit "registerVendor" executes client-side
-        │       └─ Asserts vendorComplianceScore >= 75 without revealing score
-        │       └─ Emits 32-Byte ZK Commitment to Midnight Ledger
+        ├─► 1. Connects Midnight Lace / 1AM Wallet
+        ├─► 2. Navigates to /claim (Verify Vendor)
+        ├─► 3. Selects Frameworks (ISO, SOC 2) & Enters Score (>= 75)
+        ├─► 4. Client generates single-use salt & SHA-256 Credential Hash
+        ├─► 5. ZK Circuit "registerVendor" executes client-side
+        │       └── Asserts vendorComplianceScore >= 75 without revealing score
+        │       └── Emits 32-Byte ZK Commitment to Midnight Ledger
         ▼
 [ Dual Verification Engine ]
         │
-        ├── Mode A: Enter 32-Byte ZK Commitment Hash -> Validates directly
+        ├─► Mode A: Enter 32-Byte ZK Commitment Hash -> Validates directly
         └── Mode B: Enter Midnight TxHash -> Queries on-chain indexer
         ▼
 [ Procurement Authority ]
@@ -434,7 +449,7 @@ export circuit incrementSession(): [] {
 
 ---
 
-## 🌐 Verified On-Chain Deployment
+## 🔗 Verified On-Chain Deployment
 
 | Parameter | On-Chain Detail |
 | :--- | :--- |
@@ -489,34 +504,32 @@ Private-Vendor-Verification/
 │   └── deploy-runner.mjs          # Authoritative deployment runner
 ├── src/
 │   ├── app/
-│   │   ├── admin/page.tsx         # Procurement admin console
-│   │   ├── claim/page.tsx         # Vendor accreditation portal with dual verification
-│   │   ├── explorer/page.tsx      # Midnight Preview on-chain explorer
-│   │   ├── layout.tsx             # Root metadata & font layout
-│   │   ├── page.tsx               # Main dashboard with Level 2 & 3 matrix
-│   │   └── globals.css            # Dark glassmorphic design system
+│   │   ├── admin/page.tsx         # Procurement admin console (Paper 3D minimal)
+│   │   ├── claim/page.tsx         # Vendor accreditation portal (Paper 3D minimal)
+│   │   ├── explorer/page.tsx      # Midnight Preview on-chain explorer (Paper 3D minimal)
+│   │   ├── layout.tsx             # Root Plus Jakarta Sans metadata layout
+│   │   ├── page.tsx               # Main dashboard with 3D paper sculpture & peel cards
+│   │   └── globals.css            # 3D Paper-Minimalist design system with WebGL animations
 │   ├── components/
 │   │   ├── Navbar.tsx             # Navigation bar with live wallet trigger
+│   │   ├── VendorPaperWaves3D.tsx # Interactive Three.js 3D WebGL paper sculpture
 │   │   └── WalletConnectModal.tsx # Interactive Lace / 1AM connection modal
 │   ├── integration/
-│   │   ├── contract.ts            # Complete SDK client implementation
-│   │   └── deploy.js              # Authoritative deployment record
+│   │   ├── contract.ts            # Midnight contract client & live GraphQL indexer
+│   │   ├── deploy.ts              # Canonical deployment exports & ContractProviders check
+│   │   └── deploy.js              # Pure JavaScript deployment runtime
 │   └── lib/
-│       └── contract.ts            # Client SDK interface
-├── tests/
-│   ├── private_vendor_verification.test.ts # 25 comprehensive test cases
-│   └── counter.test.ts            # 13 invariant validation tests
-├── package.json                   # Dependencies, test scripts, and config
-├── PROPOSAL.md                    # Formal project proposal & architecture
-└── README.md                      # Complete documentation
+│       └── contract.ts            # Client-side Web Crypto SHA-256 & canonical address
+└── tests/
+    ├── counter.test.ts            # Invariant, deployment & circuit tests (13 tests)
+    └── private_vendor_verification.test.ts # ZK qualification assertions (25 tests)
 ```
 
 ---
 
 ## 👤 Author & License
 
-- **Developer**: `sanasabnam59-svg`
-- **Email**: `sanasabnam59@gmail.com`
-- **GitHub**: [@sanasabnam59-svg](https://github.com/sanasabnam59-svg)
-- **Live dApp**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
-- **License**: MIT
+- **Developer**: [sanasabnam59-svg](https://github.com/sanasabnam59-svg)
+- **Email**: [sanasabnam59@gmail.com](mailto:sanasabnam59@gmail.com)
+- **Repository**: [https://github.com/sanasabnam59-svg/Private-Vendor-Verification](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
+- **License**: Released under the [MIT License](LICENSE).

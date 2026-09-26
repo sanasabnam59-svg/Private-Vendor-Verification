@@ -1,30 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
-import { getClient } from "../lib/contract";
+import React, { useState, useEffect } from "react";
+import { getClient, DiscoveredWallet } from "../lib/contract";
 
-interface Props {
+interface WalletConnectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConnected: (address: string, walletName: string) => void;
 }
 
-export default function WalletConnectModal({ isOpen, onClose, onConnected }: Props) {
+export default function WalletConnectModal({
+  isOpen,
+  onClose,
+  onConnected,
+}: WalletConnectModalProps) {
+  const [wallets, setWallets] = useState<DiscoveredWallet[]>([]);
   const [connecting, setConnecting] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const client = getClient();
+      setWallets(client.getWallets());
+      setErrorMsg(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleConnect = async (walletType: "lace" | "oneam") => {
-    setConnecting(walletType);
-    setError(null);
+  const handleConnect = async (walletId: "lace" | "oneam") => {
+    setConnecting(walletId);
+    setErrorMsg(null);
     try {
       const client = getClient();
-      const res = await client.connect(walletType);
-      onConnected(res.address, walletType === "oneam" ? "1AM Wallet" : "Midnight Lace");
+      const res = await client.connect(walletId);
+      onConnected(res.address, walletId === "oneam" ? "1AM Wallet" : "Midnight Lace");
       onClose();
-    } catch (err: any) {
-      setError(err?.message || "Failed to connect wallet");
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Failed to connect wallet");
     } finally {
       setConnecting(null);
     }
@@ -38,118 +51,130 @@ export default function WalletConnectModal({ isOpen, onClose, onConnected }: Pro
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.75)",
-        backdropFilter: "blur(6px)",
+        background: "rgba(15, 23, 42, 0.35)",
+        backdropFilter: "blur(8px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1000,
-        padding: "1rem",
+        zIndex: 100,
+        padding: "1.5rem",
       }}
       onClick={onClose}
     >
       <div
         style={{
-          background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          borderRadius: "16px",
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: 24,
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.18)",
           width: "100%",
-          maxWidth: "440px",
-          padding: "1.75rem",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-          color: "#f8fafc",
+          maxWidth: 440,
+          padding: "2rem",
+          position: "relative",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-          <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span>🔒</span> Connect Midnight Wallet
-          </h3>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+          <div>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#0a0d14" }}>
+              connect wallet
+            </h3>
+            <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
+              Select your Midnight Preview testnet wallet
+            </p>
+          </div>
           <button
             onClick={onClose}
             style={{
-              background: "transparent",
+              background: "#f1f5f9",
               border: "none",
-              color: "#94a3b8",
-              fontSize: "1.25rem",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
               cursor: "pointer",
-              lineHeight: 1,
+              fontSize: "1rem",
+              color: "#64748b",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            &times;
+            ?
           </button>
         </div>
 
-        <p style={{ fontSize: "0.85rem", color: "#94a3b8", marginBottom: "1.5rem", lineHeight: 1.5 }}>
-          Select an authorized Midnight network wallet to authenticate your enterprise session and sign zero-knowledge circuits.
-        </p>
-
-        {error && (
-          <div style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid #ef4444", borderRadius: "8px", padding: "0.75rem", fontSize: "0.8rem", color: "#fca5a5", marginBottom: "1rem" }}>
-            {error}
+        {errorMsg && (
+          <div
+            style={{
+              padding: "0.75rem 1rem",
+              borderRadius: 12,
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+              color: "#b91c1c",
+              fontSize: "0.82rem",
+              marginBottom: "1.25rem",
+            }}
+          >
+            {errorMsg}
           </div>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          <button
-            onClick={() => handleConnect("lace")}
-            disabled={connecting !== null}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0.9rem 1.2rem",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "12px",
-              color: "#f8fafc",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span style={{ fontSize: "1.4rem" }}>🌙</span>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>Midnight Lace Wallet</div>
-                <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Official Chrome & Brave Extension</div>
+        {/* Wallet Options */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          {wallets.map((w) => (
+            <button
+              key={w.id}
+              onClick={() => handleConnect(w.id as any)}
+              disabled={connecting !== null}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "1rem 1.15rem",
+                borderRadius: 16,
+                border: "1px solid #e2e8f0",
+                background: "#fbfcfd",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                textAlign: "left",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#cbd5e1";
+                e.currentTarget.style.background = "#f8fafc";
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#e2e8f0";
+                e.currentTarget.style.background = "#fbfcfd";
+                e.currentTarget.style.transform = "none";
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+                <span style={{ fontSize: "1.5rem" }}>{w.icon}</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: "0.94rem", color: "#0f172a" }}>
+                    {w.name}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: w.installed ? "#10b981" : "#94a3b8" }}>
+                    {w.installed ? "Detected in browser" : "Demo session ready"}
+                  </div>
+                </div>
               </div>
-            </div>
-            <span style={{ fontSize: "0.75rem", color: "#818cf8" }}>
-              {connecting === "lace" ? "Connecting..." : "Preview Testnet →"}
-            </span>
-          </button>
 
-          <button
-            onClick={() => handleConnect("oneam")}
-            disabled={connecting !== null}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0.9rem 1.2rem",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              borderRadius: "12px",
-              color: "#f8fafc",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <span style={{ fontSize: "1.4rem" }}>⚡</span>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>1AM Wallet</div>
-                <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Alternative Midnight DApp Provider</div>
+              <div
+                className="btn-pill-black"
+                style={{ padding: "0.4rem 0.9rem", fontSize: "0.78rem" }}
+              >
+                {connecting === w.id ? "connecting..." : "connect"}
               </div>
-            </div>
-            <span style={{ fontSize: "0.75rem", color: "#818cf8" }}>
-              {connecting === "oneam" ? "Connecting..." : "Preview Testnet →"}
-            </span>
-          </button>
+            </button>
+          ))}
         </div>
 
-        <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", fontSize: "0.75rem", color: "#64748b", textAlign: "center" }}>
-          Target Network: <span style={{ color: "#a5b4fc" }}>Midnight Preview (Chain ID: preview)</span>
+        {/* Footer info */}
+        <div style={{ marginTop: "1.75rem", textAlign: "center", fontSize: "0.76rem", color: "#94a3b8" }}>
+          Shielded and transparent operations via official Midnight.js SDK.
         </div>
       </div>
     </div>
