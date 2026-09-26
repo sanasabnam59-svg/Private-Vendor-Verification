@@ -1,56 +1,58 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { getClient, VendorPledgeData, VerificationResult } from "../../lib/contract";
+import { getClient, VendorRegistrationInput } from "../../lib/contract";
 
-export default function VendorVerificationPage() {
+export default function ClaimPage() {
   const [activeTab, setActiveTab] = useState<"register" | "verify">("register");
 
-  // Registration Form State
+  // Form State
   const [companyName, setCompanyName] = useState("");
-  const [registrationNumber, setRegistrationNumber] = useState("");
-  const [jurisdiction, setJurisdiction] = useState("United States / Delaware");
-  const [complianceScore, setComplianceScore] = useState(88);
+  const [jurisdiction, setJurisdiction] = useState("US-DE");
+  const [regNumber, setRegNumber] = useState("");
   const [solvencyTier, setSolvencyTier] = useState("Tier 1: $10M+ Capitalization");
+  const [complianceScore, setComplianceScore] = useState(88);
   const [frameworks, setFrameworks] = useState<string[]>(["ISO-27001", "SOC-2-Type-II"]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [regResult, setRegResult] = useState<any>(null);
-  const [regError, setRegError] = useState<string | null>(null);
 
-  // Verification Form State
+  // Process States
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<any>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Verification Search State
   const [verifyQuery, setVerifyQuery] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verifyResult, setVerifyResult] = useState<VerificationResult | null>(null);
+  const [verifyResult, setVerifyResult] = useState<any>(null);
 
-  const toggleFramework = (f: string) => {
-    if (frameworks.includes(f)) {
-      setFrameworks(frameworks.filter(item => item !== f));
+  const toggleFramework = (fw: string) => {
+    if (frameworks.includes(fw)) {
+      setFrameworks(frameworks.filter((f) => f !== fw));
     } else {
-      setFrameworks([...frameworks, f]);
+      setFrameworks([...frameworks, fw]);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setRegError(null);
-    setRegResult(null);
+    setSubmitError(null);
+    setSubmitResult(null);
 
     try {
       const client = getClient();
-      const payload: VendorPledgeData = {
-        companyName: companyName.trim() || "Global Enterprise Supplier",
-        registrationNumber: registrationNumber.trim() || "US-CORP-77491",
+      const input: VendorRegistrationInput = {
+        companyName,
         jurisdiction,
-        complianceScore,
+        registrationNumber: regNumber || "REG-" + Math.floor(100000 + Math.random() * 900000),
         solvencyTier,
+        complianceScore,
         frameworks,
       };
 
-      const result = await client.registerVendor(payload);
-      setRegResult(result);
-    } catch (e: any) {
-      setRegError(e?.message || "Failed to submit vendor accreditation");
+      const result = await client.registerVendor(input);
+      setSubmitResult(result);
+    } catch (err: any) {
+      setSubmitError(err?.message || "Failed to register vendor accreditation proof");
     } finally {
       setIsSubmitting(false);
     }
@@ -59,23 +61,21 @@ export default function VendorVerificationPage() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verifyQuery.trim()) return;
-
     setIsVerifying(true);
     setVerifyResult(null);
 
     try {
       const client = getClient();
-      const res = await client.verifyVendorAccreditation(verifyQuery.trim());
+      const res = await client.verifyAccreditationDual(verifyQuery.trim());
       setVerifyResult(res);
-    } catch (e: any) {
+    } catch (err: any) {
       setVerifyResult({
         valid: false,
+        status: "Error",
         commitment: verifyQuery,
-        verifiedAt: new Date().toISOString(),
-        mode: "zk-commitment",
-        source: "Private Vendor Verification Registry",
-        status: "unverified",
-        details: e?.message || "Verification query failed",
+        details: err?.message || "Verification query failed",
+        mode: "unknown",
+        source: "client",
       });
     } finally {
       setIsVerifying(false);
@@ -83,106 +83,106 @@ export default function VendorVerificationPage() {
   };
 
   return (
-    <div style={{ maxWidth: 1040, margin: "0 auto", padding: "2rem 1.5rem 5rem 1.5rem" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
-        <div className="pill-release-badge">
-          <span>?</span> zero-knowledge supplier due diligence
+    <div style={{ maxWidth: 1040, margin: "0 auto", padding: "2.5rem 2rem 5rem" }}>
+      {/* Page Header */}
+      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div className="pill-release-badge" style={{ marginBottom: "1rem" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }}>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span>zero-knowledge supplier due diligence</span>
         </div>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, letterSpacing: "-0.04em", color: "#0a0d14", marginBottom: "0.5rem" }}>
-          vendor accreditation portal
+        <h1 style={{ fontSize: "2.6rem", fontWeight: 800, letterSpacing: "-0.04em", color: "#0a0d14", marginBottom: "0.6rem" }}>
+          confidential vendor verification
         </h1>
-        <p style={{ color: "#64748b", fontSize: "1.02rem", maxWidth: 640, margin: "0 auto" }}>
-          Register compliant supplier credentials with ZK-SNARK threshold proofs, or instantly verify accreditation by commitment or on-chain transaction hash.
+        <p style={{ color: "#52525b", maxWidth: 620, margin: "0 auto", fontSize: "1.02rem", lineHeight: 1.6 }}>
+          Register confidential compliance accreditations or verify existing supplier credentials with mathematical zero-knowledge privacy.
         </p>
+
+        {/* Tab Switcher */}
+        <div style={{ display: "inline-flex", background: "#f1f5f9", padding: "0.3rem", borderRadius: 9999, marginTop: "1.75rem", border: "1px solid #e2e8f0" }}>
+          <button
+            onClick={() => setActiveTab("register")}
+            style={{
+              padding: "0.55rem 1.6rem",
+              borderRadius: 9999,
+              border: "none",
+              background: activeTab === "register" ? "#0f172a" : "transparent",
+              color: activeTab === "register" ? "#ffffff" : "#64748b",
+              fontWeight: 700,
+              fontSize: "0.88rem",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            register vendor
+          </button>
+          <button
+            onClick={() => setActiveTab("verify")}
+            style={{
+              padding: "0.55rem 1.6rem",
+              borderRadius: 9999,
+              border: "none",
+              background: activeTab === "verify" ? "#0f172a" : "transparent",
+              color: activeTab === "verify" ? "#ffffff" : "#64748b",
+              fontWeight: 700,
+              fontSize: "0.88rem",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            dual verification
+          </button>
+        </div>
       </div>
 
-      {/* Pill Tabs */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "0.75rem", marginBottom: "2.5rem" }}>
-        <button
-          onClick={() => setActiveTab("register")}
-          className={activeTab === "register" ? "btn-pill-black" : "btn-pill-white"}
-          style={{ padding: "0.6rem 1.4rem" }}
-        >
-          register vendor
-        </button>
-        <button
-          onClick={() => setActiveTab("verify")}
-          className={activeTab === "verify" ? "btn-pill-black" : "btn-pill-white"}
-          style={{ padding: "0.6rem 1.4rem" }}
-        >
-          dual verification engine
-        </button>
-      </div>
-
-      {/* ??? TAB 1: REGISTER VENDOR ?????????????????????????????????????????? */}
+      {/* ─── TAB 1: REGISTER VENDOR ────────────────────────────────────── */}
       {activeTab === "register" && (
         <div className="paper-panel" style={{ maxWidth: 760, margin: "0 auto" }}>
           <div style={{ marginBottom: "1.8rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1.2rem" }}>
             <h2 style={{ fontSize: "1.35rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#0a0d14" }}>
-              submit vendor accreditation
+              vendor accreditation pledge
             </h2>
             <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
-              Private witnesses remain local in browser memory. Proves compliance score &gt;= 75 on Midnight Preview.
+              Private witnesses are evaluated strictly in browser memory. Only 32-byte ZK commitment and qualification boolean are emitted on-chain.
             </p>
           </div>
 
-          {regError && (
-            <div
-              style={{
-                padding: "0.9rem 1.1rem",
-                borderRadius: 14,
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                color: "#b91c1c",
-                fontSize: "0.85rem",
-                marginBottom: "1.5rem",
-              }}
-            >
-              ?? {regError}
+          {submitError && (
+            <div style={{ padding: "0.9rem 1.1rem", borderRadius: 14, background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: "0.84rem", marginBottom: "1.5rem" }}>
+              {submitError}
             </div>
           )}
 
-          {regResult && (
-            <div
-              style={{
-                padding: "1.25rem 1.4rem",
-                borderRadius: 16,
-                background: "#f0fdf4",
-                border: "1px solid #bbf7d0",
-                color: "#166534",
-                marginBottom: "1.75rem",
-              }}
-            >
-              <div style={{ fontWeight: 800, fontSize: "1.05rem", marginBottom: "0.4rem" }}>
-                ? Vendor Accreditation Verified On-Chain!
+          {submitResult && (
+            <div className="paper-panel-subtle" style={{ border: "1px solid #86efac", background: "#f0fdf4", marginBottom: "1.75rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem" }}>
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                  <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontWeight: 800, fontSize: "1.05rem", color: "#065f46" }}>
+                  Vendor Accreditation Verified On-Chain!
+                </span>
               </div>
-              <div style={{ fontSize: "0.85rem", lineHeight: 1.6, wordBreak: "break-all" }}>
-                <div><strong>Commitment Hash:</strong> <span style={{ fontFamily: "monospace" }}>{regResult.commitment}</span></div>
-                <div><strong>Transaction Hash:</strong> <span style={{ fontFamily: "monospace" }}>{regResult.txHash}</span></div>
-                <div><strong>Compliance Score:</strong> {regResult.complianceScore} / 100 (Threshold Passed)</div>
+              <p style={{ fontSize: "0.84rem", color: "#047857", marginBottom: "0.8rem", lineHeight: 1.5 }}>
+                {submitResult.message}
+              </p>
+              <div style={{ fontSize: "0.78rem", fontFamily: "monospace", color: "#334155", wordBreak: "break-all" }}>
+                <div><strong>Commitment:</strong> {submitResult.commitment}</div>
+                <div><strong>TxHash:</strong> {submitResult.txHash}</div>
+                <div><strong>Public Ledger:</strong> Block confirmed on Midnight Preview</div>
               </div>
-              <button
-                onClick={() => {
-                  setVerifyQuery(regResult.commitment);
-                  setActiveTab("verify");
-                }}
-                className="btn-pill-black"
-                style={{ marginTop: "1rem", fontSize: "0.8rem", padding: "0.45rem 1rem" }}
-              >
-                verify this accreditation in dual engine &gt;
-              </button>
             </div>
           )}
 
           <form onSubmit={handleRegister}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", marginBottom: "1.2rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
               <div>
                 <label className="paper-label">company legal name</label>
                 <input
                   type="text"
                   className="paper-input"
-                  placeholder="e.g. Apex Cyber Logistics Inc"
+                  placeholder="e.g. Acme Cyber Systems Inc."
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   required
@@ -190,37 +190,36 @@ export default function VendorVerificationPage() {
               </div>
 
               <div>
-                <label className="paper-label">registration / tax id</label>
-                <input
-                  type="text"
-                  className="paper-input"
-                  placeholder="e.g. US-DE-8831920"
-                  value={registrationNumber}
-                  onChange={(e) => setRegistrationNumber(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.2rem", marginBottom: "1.5rem" }}>
-              <div>
-                <label className="paper-label">jurisdiction</label>
+                <label className="paper-label">regulatory jurisdiction</label>
                 <select
                   className="paper-input"
                   value={jurisdiction}
                   onChange={(e) => setJurisdiction(e.target.value)}
                 >
-                  <option value="United States / Delaware">United States / Delaware</option>
-                  <option value="European Union / Ireland">European Union / Ireland</option>
-                  <option value="United Kingdom / London">United Kingdom / London</option>
-                  <option value="Singapore">Singapore</option>
-                  <option value="Switzerland / Zug">Switzerland / Zug</option>
-                  <option value="Global Multi-Jurisdiction">Global Multi-Jurisdiction</option>
+                  <option value="US-DE">United States (Delaware)</option>
+                  <option value="US-CA">United States (California)</option>
+                  <option value="EU-DE">European Union (Germany)</option>
+                  <option value="UK-GB">United Kingdom (London)</option>
+                  <option value="SG-SG">Singapore</option>
+                  <option value="CH-ZH">Switzerland (Zurich)</option>
                 </select>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
+              <div>
+                <label className="paper-label">tax / registration number</label>
+                <input
+                  type="text"
+                  className="paper-input"
+                  placeholder="e.g. EIN-84-9182390"
+                  value={regNumber}
+                  onChange={(e) => setRegNumber(e.target.value)}
+                />
               </div>
 
               <div>
-                <label className="paper-label">solvency tier</label>
+                <label className="paper-label">solvency & balance sheet tier</label>
                 <select
                   className="paper-input"
                   value={solvencyTier}
@@ -239,7 +238,7 @@ export default function VendorVerificationPage() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
                 <span className="paper-label" style={{ margin: 0 }}>audited compliance score</span>
                 <span style={{ fontWeight: 800, fontSize: "1.15rem", color: complianceScore >= 75 ? "#059669" : "#dc2626" }}>
-                  {complianceScore} / 100 {complianceScore >= 75 ? "? Eligible" : "? Below Threshold"}
+                  {complianceScore} / 100 {complianceScore >= 75 ? "✓ Eligible" : "⚠ Below Threshold"}
                 </span>
               </div>
               <input
@@ -280,7 +279,7 @@ export default function VendorVerificationPage() {
                         transition: "all 0.15s ease",
                       }}
                     >
-                      {selected ? "? " : "+ "}{fw}
+                      {selected ? "✓ " : "+ "}{fw}
                     </button>
                   );
                 })}
@@ -299,7 +298,7 @@ export default function VendorVerificationPage() {
         </div>
       )}
 
-      {/* ??? TAB 2: DUAL VERIFICATION ENGINE ???????????????????????????????? */}
+      {/* ─── TAB 2: DUAL VERIFICATION ENGINE ───────────────────────────── */}
       {activeTab === "verify" && (
         <div className="paper-panel" style={{ maxWidth: 760, margin: "0 auto" }}>
           <div style={{ marginBottom: "1.8rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1.2rem" }}>
@@ -362,9 +361,21 @@ export default function VendorVerificationPage() {
                 </span>
               </div>
 
-              <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a", marginBottom: "0.4rem" }}>
-                {verifyResult.valid ? "? Accreditation Confirmed Active" : "? Accreditation Invalid or Revoked"}
-              </div>
+              {verifyResult.valid ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "1.1rem", fontWeight: 800, color: "#166534", marginBottom: "0.4rem" }}>
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#166534" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Accreditation Confirmed Active</span>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "1.1rem", fontWeight: 800, color: "#991b1b", marginBottom: "0.4rem" }}>
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 4L12 12M12 4L4 12" stroke="#991b1b" strokeWidth="2.2" strokeLinecap="round"/>
+                  </svg>
+                  <span>Accreditation Invalid or Revoked</span>
+                </div>
+              )}
 
               <div style={{ fontSize: "0.84rem", color: "#475569", marginBottom: "0.8rem" }}>
                 {verifyResult.details}

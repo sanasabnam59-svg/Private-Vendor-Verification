@@ -351,14 +351,14 @@ export class MidnightVendorClient {
       {
         id: "lace",
         name: "Midnight Lace Wallet",
-        icon: "??",
+        icon: "lace",
         installed: Boolean(midnight?.lace || midnight?.mnLace),
         api: midnight?.lace || midnight?.mnLace,
       },
       {
         id: "oneam",
         name: "1AM Wallet",
-        icon: "?",
+        icon: "oneam",
         installed: Boolean(midnight?.oneam),
         api: midnight?.oneam,
       },

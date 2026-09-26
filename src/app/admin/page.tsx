@@ -1,13 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { getClient, CONTRACT_ADDRESS, EXPLORER_URL } from "../../lib/contract";
+import { getClient } from "../../lib/contract";
 
-export default function ProcurementAdminPage() {
-  const [minScore, setMinScore] = useState(80);
+export default function AdminPage() {
+  const [minScore, setMinScore] = useState(75);
   const [revokeCommitment, setRevokeCommitment] = useState("");
-  const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleUpdatePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +19,7 @@ export default function ProcurementAdminPage() {
       const res = await client.setRegistryAuthorityCommitment(minScore);
       setStatusMsg({
         type: "success",
-        text: `? Minimum compliance threshold updated to ${minScore}/100. Authority commitment anchored on Midnight (TxHash: ${res.txHash.slice(0, 16)}...).`,
+        text: `✓ Minimum compliance threshold updated to ${minScore}/100. Authority commitment anchored on Midnight (TxHash: ${res.txHash.slice(0, 16)}...).`,
       });
     } catch (e: any) {
       setStatusMsg({
@@ -43,13 +43,13 @@ export default function ProcurementAdminPage() {
       const res = await client.revokeVendorAccreditation(revokeCommitment.trim());
       setStatusMsg({
         type: "success",
-        text: `? Vendor accreditation revoked on-chain via ZK circuit. LastRevokedCommitment updated (TxHash: ${res.txHash.slice(0, 16)}...).`,
+        text: `✓ Vendor accreditation revoked on-chain via ZK circuit. LastRevokedCommitment updated (TxHash: ${res.txHash.slice(0, 16)}...).`,
       });
       setRevokeCommitment("");
     } catch (e: any) {
       setStatusMsg({
         type: "error",
-        text: "Failed to execute revokeVendorAccreditation: " + (e?.message || "Unauthorized insurer key"),
+        text: "Failed to execute revokeVendorAccreditation: " + (e?.message || "Unauthorized authority key"),
       });
     } finally {
       setIsProcessing(false);
@@ -64,7 +64,7 @@ export default function ProcurementAdminPage() {
       const res = await client.incrementSession();
       setStatusMsg({
         type: "success",
-        text: `? Monotonic session counter incremented for anti-replay protection (TxHash: ${res.txHash.slice(0, 16)}...).`,
+        text: `✓ Monotonic session counter incremented for anti-replay protection (TxHash: ${res.txHash.slice(0, 16)}...).`,
       });
     } catch (e: any) {
       setStatusMsg({
@@ -80,8 +80,12 @@ export default function ProcurementAdminPage() {
     <div style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem 5rem 1.5rem" }}>
       {/* Header */}
       <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
-        <div className="pill-release-badge">
-          <span>??</span> procurement compliance authority
+        <div className="pill-release-badge" style={{ marginBottom: "1rem" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }}>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>procurement compliance authority</span>
         </div>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800, letterSpacing: "-0.04em", color: "#0a0d14", marginBottom: "0.5rem" }}>
           procurement admin console
@@ -102,9 +106,21 @@ export default function ProcurementAdminPage() {
             fontSize: "0.88rem",
             marginBottom: "2rem",
             fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
           }}
         >
-          {statusMsg.text}
+          {statusMsg.type === "success" ? (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#166534" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 4L12 12M12 4L4 12" stroke="#991b1b" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
+          )}
+          <span>{statusMsg.text}</span>
         </div>
       )}
 

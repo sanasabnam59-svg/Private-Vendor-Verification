@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { getClient, DiscoveredWallet } from "../lib/contract";
@@ -93,14 +93,15 @@ export default function WalletConnectModal({
               height: 32,
               borderRadius: "50%",
               cursor: "pointer",
-              fontSize: "1rem",
-              color: "#64748b",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              color: "#64748b",
             }}
           >
-            ?
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
 
@@ -151,7 +152,28 @@ export default function WalletConnectModal({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
-                <span style={{ fontSize: "1.5rem" }}>{w.icon}</span>
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    background: w.id === "lace" ? "#e0e7ff" : "#fef3c7",
+                    color: w.id === "lace" ? "#4338ca" : "#d97706",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {w.id === "lace" ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                  )}
+                </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: "0.94rem", color: "#0f172a" }}>
                     {w.name}

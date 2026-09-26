@@ -1,12 +1,16 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
-import { getClient, CONTRACT_ADDRESS, EXPLORER_URL, INDEXER_GRAPHQL_URL, RegisteredVendorRecord } from "../../lib/contract";
+import { useEffect, useState } from "react";
+import { CANONICAL_DEPLOYMENT, getClient, StoredVendorRecord } from "../../lib/contract";
 
-export default function OnChainExplorerPage() {
+export default function ExplorerPage() {
   const [indexerState, setIndexerState] = useState<any>(null);
+  const [vendors, setVendors] = useState<StoredVendorRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [vendors, setVendors] = useState<RegisteredVendorRecord[]>([]);
+
+  const CONTRACT_ADDRESS = CANONICAL_DEPLOYMENT.contractAddress;
+  const EXPLORER_URL = CANONICAL_DEPLOYMENT.explorerUrl;
+  const INDEXER_GRAPHQL_URL = "https://indexer.preview.midnight.network/api/v4/graphql";
 
   useEffect(() => {
     async function queryIndexer() {
@@ -38,8 +42,13 @@ export default function OnChainExplorerPage() {
     <div style={{ maxWidth: 1140, margin: "0 auto", padding: "2rem 1.5rem 5rem 1.5rem" }}>
       {/* Header */}
       <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
-        <div className="pill-release-badge">
-          <span>??</span> midnight preview testnet indexer
+        <div className="pill-release-badge" style={{ marginBottom: "1rem" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4 }}>
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <span>midnight preview testnet indexer</span>
         </div>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800, letterSpacing: "-0.04em", color: "#0a0d14", marginBottom: "0.5rem" }}>
           on-chain contract explorer
@@ -66,9 +75,12 @@ export default function OnChainExplorerPage() {
             target="_blank"
             rel="noreferrer"
             className="btn-pill-black"
-            style={{ padding: "0.55rem 1.35rem", fontSize: "0.84rem" }}
+            style={{ padding: "0.55rem 1.35rem", fontSize: "0.84rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}
           >
-            midnight explorer ?
+            <span>midnight explorer</span>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <path d="M3.5 1.5H10.5V8.5M10.5 1.5L1.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </a>
         </div>
       </div>
@@ -124,8 +136,9 @@ export default function OnChainExplorerPage() {
           <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0a0d14" }}>
             raw state bytes (midnight preview indexer v4)
           </h3>
-          <span style={{ fontSize: "0.82rem", color: "#10b981", fontWeight: 600 }}>
-            {loading ? "Querying GraphQL..." : "? Live Synchronized"}
+          <span style={{ fontSize: "0.82rem", color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+            <span>{loading ? "Querying GraphQL..." : "Live Synchronized"}</span>
           </span>
         </div>
 
@@ -175,7 +188,7 @@ export default function OnChainExplorerPage() {
                 <td style={{ fontWeight: 700 }}>
                   {v.companyName}
                   <div style={{ fontSize: "0.74rem", color: "#94a3b8", fontWeight: 400 }}>
-                    {v.jurisdiction} ? {v.registrationNumber}
+                    {v.jurisdiction} · {v.registrationNumber}
                   </div>
                 </td>
                 <td style={{ fontWeight: 800, color: "#059669" }}>

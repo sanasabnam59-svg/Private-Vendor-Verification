@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -75,13 +75,12 @@ export default function Navbar() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#ffffff",
-                  fontWeight: 900,
-                  fontSize: "0.95rem",
                   boxShadow: "0 4px 10px rgba(0, 0, 0, 0.18)",
                 }}
               >
-                ?
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M2.5 2.5L10.5 10.5M10.5 2.5L2.5 10.5" stroke="#ffffff" strokeWidth="2.3" strokeLinecap="round" />
+                </svg>
               </div>
               <span
                 style={{
@@ -98,8 +97,8 @@ export default function Navbar() {
             {/* Subtle Divider */}
             <div style={{ width: 1, height: 22, background: "#cbd5e1" }} />
 
-            {/* Menu Links with Dropdowns matching reference */}
-            <nav style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            {/* Nav Menu */}
+            <nav style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
               {/* Solutions Dropdown */}
               <div
                 style={{ position: "relative" }}
@@ -116,12 +115,15 @@ export default function Navbar() {
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.3rem",
+                    gap: "0.35rem",
                     padding: "0.25rem 0",
                     fontFamily: "inherit",
                   }}
                 >
-                  solutions <span style={{ fontSize: "0.7rem", opacity: 0.7 }}>?</span>
+                  solutions
+                  <svg width="8" height="5" viewBox="0 0 8 5" fill="none" style={{ opacity: 0.65 }}>
+                    <path d="M1 1L4 4L7 1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
 
                 {solutionsOpen && (
@@ -135,7 +137,7 @@ export default function Navbar() {
                       borderRadius: 16,
                       boxShadow: "0 14px 30px -6px rgba(0, 0, 0, 0.08)",
                       padding: "0.6rem",
-                      minWidth: 230,
+                      minWidth: 240,
                       zIndex: 100,
                     }}
                   >
@@ -197,12 +199,15 @@ export default function Navbar() {
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.3rem",
+                    gap: "0.35rem",
                     padding: "0.25rem 0",
                     fontFamily: "inherit",
                   }}
                 >
-                  company <span style={{ fontSize: "0.7rem", opacity: 0.7 }}>?</span>
+                  company
+                  <svg width="8" height="5" viewBox="0 0 8 5" fill="none" style={{ opacity: 0.65 }}>
+                    <path d="M1 1L4 4L7 1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
 
                 {companyOpen && (
@@ -216,7 +221,7 @@ export default function Navbar() {
                       borderRadius: 16,
                       boxShadow: "0 14px 30px -6px rgba(0, 0, 0, 0.08)",
                       padding: "0.6rem",
-                      minWidth: 230,
+                      minWidth: 240,
                       zIndex: 100,
                     }}
                   >
@@ -236,7 +241,10 @@ export default function Navbar() {
                       onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      Midnight Preview Explorer ?
+                      Midnight Preview Explorer
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 5, display: "inline-block", verticalAlign: "middle", opacity: 0.7 }}>
+                        <path d="M3.5 1.5H10.5V8.5M10.5 1.5L1.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                       <span style={{ display: "block", fontSize: "0.74rem", color: "#64748b", fontWeight: 400 }}>
                         View live on-chain contract
                       </span>
