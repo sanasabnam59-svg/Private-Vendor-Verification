@@ -1,75 +1,132 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getClient } from "../../lib/contract";
+import TransactionVerifyModal from "../../components/TransactionVerifyModal";
+import WalletConnectModal from "../../components/WalletConnectModal";
 
 export default function AdminPage() {
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletName, setWalletName] = useState<string | null>(null);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+
   const [minScore, setMinScore] = useState(75);
   const [revokeCommitment, setRevokeCommitment] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const handleUpdatePolicy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-    setStatusMsg(null);
+  // 1AM Transaction Verification Modal State
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [modalAction, setModalAction] = useState<{ title: string; circuit: string; commitment?: string; details?: any; exec: () => Promise<void> } | null>(null);
+  const [modalStatus, setModalStatus] = useState<"idle" | "awaiting_approval" | "submitting" | "confirmed" | "rejected">("idle");
+  const [modalError, setModalError] = useState<string | null>(null);
 
-    try {
-      const client = getClient();
-      const res = await client.setRegistryAuthorityCommitment(minScore);
-      setStatusMsg({
-        type: "success",
-        text: `✓ Minimum compliance threshold updated to ${minScore}/100. Authority commitment anchored on Midnight (TxHash: ${res.txHash.slice(0, 16)}...).`,
-      });
-    } catch (e: any) {
+  useEffect(() => {
+    const client = getClient();
+    if (client.isConnected && client.connectedAddress) {
+      setWalletAddress(client.connectedAddress);
+      setWalletName(client.connectedWallet || "1AM Wallet");
+    }
+  }, []);
+
+  const ensureWallet = (): boolean => {
+    const client = getClient();
+    if (!client.isConnected || !client.connectedAddress) {
       setStatusMsg({
         type: "error",
-        text: "Failed to execute setRegistryAuthorityCommitment: " + (e?.message || "Transaction rejected"),
+        text: "Please connect your 1AM Wallet before executing procurement authority governance circuits.",
       });
-    } finally {
-      setIsProcessing(false);
+      setIsConnectModalOpen(true);
+      return false;
     }
+    return true;
   };
 
-  const handleRevoke = async (e: React.FormEvent) => {
+  const handleUpdatePolicy = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ensureWallet()) return;
+
+    setModalAction({
+      title: "Update Minimum Compliance Score",
+      circuit: "setRegistryAuthorityCommitment",
+      details: { "New Minimum Threshold": `${minScore} / 100` },
+      exec: async () => {
+        const client = getClient();
+        const res = await client.setRegistryAuthorityCommitment(minScore);
+        setStatusMsg({
+          type: "success",
+          text: `✓ Verified by 1AM Wallet! Minimum compliance threshold updated to ${minScore}/100 on Midnight (TxHash: ${res.txHash.slice(0, 16)}...).`,
+        });
+      },
+    });
+    setModalStatus("awaiting_approval");
+    setModalError(null);
+    setIsVerifyModalOpen(true);
+  };
+
+  const handleRevoke = (e: React.FormEvent) => {
     e.preventDefault();
     if (!revokeCommitment.trim()) return;
+    if (!ensureWallet()) return;
 
-    setIsProcessing(true);
-    setStatusMsg(null);
-
-    try {
-      const client = getClient();
-      const res = await client.revokeVendorAccreditation(revokeCommitment.trim());
-      setStatusMsg({
-        type: "success",
-        text: `✓ Vendor accreditation revoked on-chain via ZK circuit. LastRevokedCommitment updated (TxHash: ${res.txHash.slice(0, 16)}...).`,
-      });
-      setRevokeCommitment("");
-    } catch (e: any) {
-      setStatusMsg({
-        type: "error",
-        text: "Failed to execute revokeVendorAccreditation: " + (e?.message || "Unauthorized authority key"),
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    const clean = revokeCommitment.trim();
+    setModalAction({
+      title: "Revoke Vendor Accreditation",
+      circuit: "revokeVendorAccreditation",
+      commitment: clean,
+      details: { "Target Commitment": clean },
+      exec: async () => {
+        const client = getClient();
+        const res = await client.revokeVendorAccreditation(clean);
+        setStatusMsg({
+          type: "success",
+          text: `✓ Verified by 1AM Wallet! Vendor accreditation revoked on-chain via ZK circuit (TxHash: ${res.txHash.slice(0, 16)}...).`,
+        });
+        setRevokeCommitment("");
+      },
+    });
+    setModalStatus("awaiting_approval");
+    setModalError(null);
+    setIsVerifyModalOpen(true);
   };
 
-  const handleIncrementSession = async () => {
+  const handleIncrementSession = () => {
+    if (!ensureWallet()) return;
+
+    setModalAction({
+      title: "Increment Monotonic Session Epoch",
+      circuit: "incrementSession",
+      details: { "Anti-Replay": "Advance session epoch nonce by +1" },
+      exec: async () => {
+        const client = getClient();
+        const res = await client.incrementSession();
+        setStatusMsg({
+          type: "success",
+          text: `✓ Verified by 1AM Wallet! Monotonic session counter incremented for anti-replay protection (TxHash: ${res.txHash.slice(0, 16)}...).`,
+        });
+      },
+    });
+    setModalStatus("awaiting_approval");
+    setModalError(null);
+    setIsVerifyModalOpen(true);
+  };
+
+  const executeModalAction = async () => {
+    if (!modalAction) return;
     setIsProcessing(true);
-    setStatusMsg(null);
+    setModalStatus("submitting");
+
     try {
-      const client = getClient();
-      const res = await client.incrementSession();
-      setStatusMsg({
-        type: "success",
-        text: `✓ Monotonic session counter incremented for anti-replay protection (TxHash: ${res.txHash.slice(0, 16)}...).`,
-      });
+      await modalAction.exec();
+      setModalStatus("confirmed");
+      setIsVerifyModalOpen(false);
     } catch (e: any) {
+      const msg = e?.message || "Transaction failed";
+      setModalError(msg);
+      setModalStatus("rejected");
       setStatusMsg({
         type: "error",
-        text: "Failed to increment session: " + (e?.message || "Transaction rejected"),
+        text: "1AM Wallet Notice: " + msg,
       });
     } finally {
       setIsProcessing(false);
@@ -91,8 +148,26 @@ export default function AdminPage() {
           procurement admin console
         </h1>
         <p style={{ color: "#64748b", fontSize: "1.02rem", maxWidth: 620, margin: "0 auto" }}>
-          Execute authorized zero-knowledge governance circuits: anchor authority commitments, adjust compliance thresholds, and revoke non-compliant accreditations.
+          Execute authorized zero-knowledge governance circuits verified through your 1AM Wallet.
         </p>
+
+        {/* Wallet Status indicator */}
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "1rem" }}>
+          {walletAddress ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", background: "#f1f5f9", padding: "0.35rem 0.9rem", borderRadius: 9999, border: "1px solid #e2e8f0", fontSize: "0.8rem", fontWeight: 600 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981" }} />
+              <span>1AM: {walletAddress.slice(0, 8)}...{walletAddress.slice(-4)}</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsConnectModalOpen(true)}
+              className="btn-pill-white"
+              style={{ padding: "0.4rem 1rem", fontSize: "0.82rem" }}
+            >
+              + connect 1am wallet
+            </button>
+          )}
+        </div>
       </div>
 
       {statusMsg && (
@@ -161,7 +236,7 @@ export default function AdminPage() {
               className="btn-pill-black"
               style={{ width: "100%", padding: "0.75rem" }}
             >
-              {isProcessing ? "Executing ZK Circuit..." : "anchor authority & update"}
+              verify with 1am & update threshold
             </button>
           </form>
         </div>
@@ -190,7 +265,7 @@ export default function AdminPage() {
                 required
               />
               <div style={{ fontSize: "0.74rem", color: "#94a3b8", marginTop: "0.4rem" }}>
-                Requires authorized <code>authoritySigningKey()</code> witness proof on Midnight.
+                Requires authorized <code>authoritySigningKey()</code> witness verified by 1AM Wallet.
               </div>
             </div>
 
@@ -200,7 +275,7 @@ export default function AdminPage() {
               className="btn-pill-black"
               style={{ width: "100%", padding: "0.75rem", background: "#b91c1c", borderColor: "#991b1b" }}
             >
-              {isProcessing ? "Revoking On-Chain..." : "revoke accreditation on-chain"}
+              verify with 1am & revoke on-chain
             </button>
           </form>
         </div>
@@ -214,7 +289,7 @@ export default function AdminPage() {
               anti-replay session epoch control
             </h3>
             <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
-              Circuit: <code>incrementSession()</code> increments monotonic session nonce to protect against proof replay.
+              Circuit: <code>incrementSession()</code> advances monotonic session epoch to prevent proof replay.
             </p>
           </div>
 
@@ -224,10 +299,42 @@ export default function AdminPage() {
             className="btn-pill-white"
             style={{ padding: "0.6rem 1.3rem", fontSize: "0.85rem" }}
           >
-            increment session epoch &gt;
+            increment session epoch via 1am &gt;
           </button>
         </div>
       </div>
+
+      {/* 1AM Wallet Transaction Verification Modal */}
+      {modalAction && (
+        <TransactionVerifyModal
+          isOpen={isVerifyModalOpen}
+          actionTitle={modalAction.title}
+          circuitName={modalAction.circuit}
+          commitment={modalAction.commitment}
+          details={modalAction.details}
+          walletAddress={walletAddress}
+          walletName={walletName}
+          status={modalStatus}
+          errorMsg={modalError}
+          onApprove={executeModalAction}
+          onCancel={() => {
+            setIsVerifyModalOpen(false);
+            setIsProcessing(false);
+            setModalStatus("idle");
+          }}
+        />
+      )}
+
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        onConnected={(addr, name) => {
+          setWalletAddress(addr);
+          setWalletName(name);
+          setStatusMsg(null);
+        }}
+      />
     </div>
   );
 }

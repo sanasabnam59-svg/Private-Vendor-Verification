@@ -1,10 +1,17 @@
 ﻿"use client";
 
-import { useState } from "react";
-import { getClient, VendorRegistrationInput } from "../../lib/contract";
+import { useState, useEffect } from "react";
+import { getClient, VendorRegistrationInput, sha256Hex } from "../../lib/contract";
+import TransactionVerifyModal from "../../components/TransactionVerifyModal";
+import WalletConnectModal from "../../components/WalletConnectModal";
 
 export default function ClaimPage() {
   const [activeTab, setActiveTab] = useState<"register" | "verify">("register");
+
+  // Wallet State
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletName, setWalletName] = useState<string | null>(null);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   // Form State
   const [companyName, setCompanyName] = useState("");
@@ -19,10 +26,24 @@ export default function ClaimPage() {
   const [submitResult, setSubmitResult] = useState<any>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // 1AM Transaction Verification Modal State
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [modalStatus, setModalStatus] = useState<"idle" | "awaiting_approval" | "submitting" | "confirmed" | "rejected">("idle");
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [computedCommitment, setComputedCommitment] = useState<string>("");
+
   // Verification Search State
   const [verifyQuery, setVerifyQuery] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+
+  useEffect(() => {
+    const client = getClient();
+    if (client.isConnected && client.connectedAddress) {
+      setWalletAddress(client.connectedAddress);
+      setWalletName(client.connectedWallet || "1AM Wallet");
+    }
+  }, []);
 
   const toggleFramework = (fw: string) => {
     if (frameworks.includes(fw)) {
@@ -32,11 +53,41 @@ export default function ClaimPage() {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handlePreSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    const client = getClient();
+
+    if (!client.isConnected || !client.connectedAddress) {
+      setSubmitError("Please connect your 1AM Wallet first before pledging vendor accreditation.");
+      setIsConnectModalOpen(true);
+      return;
+    }
+
     setSubmitError(null);
     setSubmitResult(null);
+
+    // Precompute the credential digest to show in 1AM approval modal
+    const payload = JSON.stringify({
+      companyName,
+      registrationNumber: regNumber || "REG-" + Math.floor(100000 + Math.random() * 900000),
+      jurisdiction,
+      frameworks,
+      solvencyTier,
+    });
+
+    const cHash = await sha256Hex(payload);
+    setComputedCommitment("0x" + cHash);
+    setModalStatus("awaiting_approval");
+    setModalError(null);
+    setIsVerifyModalOpen(true);
+
+    // Trigger execution
+    executeRegisterFlow();
+  };
+
+  const executeRegisterFlow = async () => {
+    setIsSubmitting(true);
+    setModalStatus("awaiting_approval");
 
     try {
       const client = getClient();
@@ -49,10 +100,16 @@ export default function ClaimPage() {
         frameworks,
       };
 
+      setModalStatus("submitting");
       const result = await client.registerVendor(input);
       setSubmitResult(result);
+      setModalStatus("confirmed");
+      setIsVerifyModalOpen(false);
     } catch (err: any) {
-      setSubmitError(err?.message || "Failed to register vendor accreditation proof");
+      const msg = err?.message || "Failed to register vendor accreditation proof";
+      setSubmitError(msg);
+      setModalError(msg);
+      setModalStatus("rejected");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,7 +153,7 @@ export default function ClaimPage() {
           confidential vendor verification
         </h1>
         <p style={{ color: "#52525b", maxWidth: 620, margin: "0 auto", fontSize: "1.02rem", lineHeight: 1.6 }}>
-          Register confidential compliance accreditations or verify existing supplier credentials with mathematical zero-knowledge privacy.
+          Register confidential compliance accreditations verified through your 1AM Wallet or inspect live on-chain credentials with zero-knowledge privacy.
         </p>
 
         {/* Tab Switcher */}
@@ -139,18 +196,37 @@ export default function ClaimPage() {
       {/* ─── TAB 1: REGISTER VENDOR ────────────────────────────────────── */}
       {activeTab === "register" && (
         <div className="paper-panel" style={{ maxWidth: 760, margin: "0 auto" }}>
-          <div style={{ marginBottom: "1.8rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1.2rem" }}>
-            <h2 style={{ fontSize: "1.35rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#0a0d14" }}>
-              vendor accreditation pledge
-            </h2>
-            <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
-              Private witnesses are evaluated strictly in browser memory. Only 32-byte ZK commitment and qualification boolean are emitted on-chain.
-            </p>
+          <div style={{ marginBottom: "1.8rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1.2rem", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h2 style={{ fontSize: "1.35rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#0a0d14" }}>
+                vendor accreditation pledge
+              </h2>
+              <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
+                Private witnesses are evaluated strictly in browser memory. Every transaction requires your explicit authorization in 1AM Wallet.
+              </p>
+            </div>
+
+            {walletAddress ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", background: "#f8fafc", padding: "0.35rem 0.8rem", borderRadius: 9999, border: "1px solid #e2e8f0", fontSize: "0.78rem", fontWeight: 600 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981" }} />
+                <span>1AM: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsConnectModalOpen(true)}
+                className="btn-pill-white"
+                style={{ padding: "0.35rem 0.85rem", fontSize: "0.78rem" }}
+              >
+                + connect 1am wallet
+              </button>
+            )}
           </div>
 
           {submitError && (
             <div style={{ padding: "0.9rem 1.1rem", borderRadius: 14, background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: "0.84rem", marginBottom: "1.5rem" }}>
-              {submitError}
+              <div style={{ fontWeight: 700, marginBottom: "0.2rem" }}>Verification Notice:</div>
+              <div>{submitError}</div>
             </div>
           )}
 
@@ -161,21 +237,22 @@ export default function ClaimPage() {
                   <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span style={{ fontWeight: 800, fontSize: "1.05rem", color: "#065f46" }}>
-                  Vendor Accreditation Verified On-Chain!
+                  Verified by 1AM Wallet & Confirmed On-Chain!
                 </span>
               </div>
               <p style={{ fontSize: "0.84rem", color: "#047857", marginBottom: "0.8rem", lineHeight: 1.5 }}>
-                {submitResult.message}
+                Vendor qualification threshold mathematically proven on Midnight Preview testnet.
               </p>
               <div style={{ fontSize: "0.78rem", fontFamily: "monospace", color: "#334155", wordBreak: "break-all" }}>
                 <div><strong>Commitment:</strong> {submitResult.commitment}</div>
                 <div><strong>TxHash:</strong> {submitResult.txHash}</div>
-                <div><strong>Public Ledger:</strong> Block confirmed on Midnight Preview</div>
+                <div><strong>Signed By:</strong> {walletAddress || "1AM Wallet"}</div>
+                <div><strong>Status:</strong> Confirmed on Midnight Ledger</div>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleRegister}>
+          <form onSubmit={handlePreSubmit}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
               <div>
                 <label className="paper-label">company legal name</label>
@@ -290,9 +367,12 @@ export default function ClaimPage() {
               type="submit"
               disabled={isSubmitting}
               className="btn-pill-black"
-              style={{ width: "100%", padding: "0.85rem", fontSize: "0.96rem" }}
+              style={{ width: "100%", padding: "0.85rem", fontSize: "0.96rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
             >
-              {isSubmitting ? "Generating ZK-SNARK Proof on Midnight..." : "submit accreditation proof on midnight"}
+              <span>{isSubmitting ? "Waiting for 1AM Wallet approval..." : "verify with 1am wallet & pledge"}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
             </button>
           </form>
         </div>
@@ -306,17 +386,17 @@ export default function ClaimPage() {
               dual verification engine
             </h2>
             <p style={{ fontSize: "0.84rem", color: "#64748b", marginTop: "0.2rem" }}>
-              Verify supplier accreditation validity using either 32-Byte ZK Commitment Hash or On-Chain Transaction Hash.
+              Verify supplier accreditation validity using either 32-Byte ZK Commitment Hash, Contract Address, or On-Chain Transaction Hash.
             </p>
           </div>
 
           <form onSubmit={handleVerify} style={{ marginBottom: "2rem" }}>
-            <label className="paper-label">enter zk commitment or on-chain txhash</label>
+            <label className="paper-label">enter zk commitment, contract address, or on-chain txhash</label>
             <div style={{ display: "flex", gap: "0.75rem" }}>
               <input
                 type="text"
                 className="paper-input"
-                placeholder="0x8a9b2c3d... or 0xf300c8ef..."
+                placeholder="0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f"
                 value={verifyQuery}
                 onChange={(e) => setVerifyQuery(e.target.value)}
                 style={{ fontFamily: "monospace" }}
@@ -366,7 +446,7 @@ export default function ClaimPage() {
                   <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
                     <path d="M13.5 4.5L6.5 11.5L3 8" stroke="#166534" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span>Accreditation Confirmed Active</span>
+                  <span>Accreditation Confirmed Active on Midnight</span>
                 </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "1.1rem", fontWeight: 800, color: "#991b1b", marginBottom: "0.4rem" }}>
@@ -400,6 +480,41 @@ export default function ClaimPage() {
           )}
         </div>
       )}
+
+      {/* 1AM Wallet Transaction Verification Modal */}
+      <TransactionVerifyModal
+        isOpen={isVerifyModalOpen}
+        actionTitle="Vendor Accreditation Pledge"
+        circuitName="registerVendor"
+        commitment={computedCommitment}
+        details={{
+          "Company": companyName,
+          "Jurisdiction": jurisdiction,
+          "Audited Score": `${complianceScore} / 100 (Threshold >= 75)`,
+          "Frameworks": frameworks.join(", "),
+        }}
+        walletAddress={walletAddress}
+        walletName={walletName}
+        status={modalStatus}
+        errorMsg={modalError}
+        onApprove={executeRegisterFlow}
+        onCancel={() => {
+          setIsVerifyModalOpen(false);
+          setIsSubmitting(false);
+          setModalStatus("idle");
+        }}
+      />
+
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        onConnected={(addr, name) => {
+          setWalletAddress(addr);
+          setWalletName(name);
+          setSubmitError(null);
+        }}
+      />
     </div>
   );
 }

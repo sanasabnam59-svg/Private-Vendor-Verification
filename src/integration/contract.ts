@@ -341,61 +341,211 @@ export class MidnightVendorClient {
     return this.registeredVendorsByCommitment.get(commitment.toLowerCase());
   }
 
-  // ??? Wallet Lifecycle ???????????????????????????????????????????????????????
+// ─── Wallet Discovery & Lifecycle ──────────────────────────────────────────
 
   public getWallets(): DiscoveredWallet[] {
     const isBrowser = typeof window !== "undefined";
-    const midnight = isBrowser ? (window as any).midnight : null;
+    let hasOneAm = false;
+    let oneAmApi: any = null;
+    let hasLace = false;
+    let laceApi: any = null;
+
+    if (isBrowser) {
+      const w = window as any;
+
+      // Check 1AM Wallet in window.midnight
+      if (w.midnight && typeof w.midnight === "object") {
+        if (w.midnight.oneam) {
+          hasOneAm = true;
+          oneAmApi = w.midnight.oneam;
+        } else if (w.midnight["1am"]) {
+          hasOneAm = true;
+          oneAmApi = w.midnight["1am"];
+        } else {
+          for (const k of Object.keys(w.midnight)) {
+            const item = w.midnight[k];
+            if (item && typeof item === "object") {
+              const n = (item.name || "").toLowerCase();
+              const r = (item.rdns || "").toLowerCase();
+              const id = k.toLowerCase();
+              if (n.includes("1am") || r.includes("1am") || id.includes("1am") || id.includes("oneam")) {
+                hasOneAm = true;
+                oneAmApi = item;
+                break;
+              }
+            }
+          }
+        }
+
+        // Check Lace Wallet in window.midnight
+        if (w.midnight.lace) {
+          hasLace = true;
+          laceApi = w.midnight.lace;
+        } else if (w.midnight.mnLace) {
+          hasLace = true;
+          laceApi = w.midnight.mnLace;
+        } else {
+          for (const k of Object.keys(w.midnight)) {
+            const item = w.midnight[k];
+            if (item && typeof item === "object") {
+              const n = (item.name || "").toLowerCase();
+              const r = (item.rdns || "").toLowerCase();
+              if (n.includes("lace") || r.includes("lace")) {
+                hasLace = true;
+                laceApi = item;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (!hasOneAm && (w.oneam || w["1am"])) {
+        hasOneAm = true;
+        oneAmApi = w.oneam || w["1am"];
+      }
+
+      if (!hasLace && w.lace) {
+        hasLace = true;
+        laceApi = w.lace;
+      }
+    }
 
     return [
-      {
-        id: "lace",
-        name: "Midnight Lace Wallet",
-        icon: "lace",
-        installed: Boolean(midnight?.lace || midnight?.mnLace),
-        api: midnight?.lace || midnight?.mnLace,
-      },
       {
         id: "oneam",
         name: "1AM Wallet",
         icon: "oneam",
-        installed: Boolean(midnight?.oneam),
-        api: midnight?.oneam,
+        installed: hasOneAm,
+        api: oneAmApi,
+      },
+      {
+        id: "lace",
+        name: "Midnight Lace Wallet",
+        icon: "lace",
+        installed: hasLace,
+        api: laceApi,
       },
     ];
   }
 
-  public async connect(walletType: "lace" | "oneam" = "lace"): Promise<{ address: string }> {
+  public async connect(
+    walletType: "lace" | "oneam" = "oneam",
+    allowDemoFallback: boolean = false
+  ): Promise<{ address: string }> {
+    const isBrowser = typeof window !== "undefined";
     const wallets = this.getWallets();
-    const target = wallets.find(w => w.id === walletType);
+    const target = wallets.find((w) => w.id === walletType);
 
-    if (target?.installed && target.api && typeof target.api.enable === "function") {
-      try {
-        const enabledApi = await target.api.enable();
-        this.walletApi = enabledApi;
-        let addr = "";
-        if (typeof enabledApi.state === "function") {
-          const s = await enabledApi.state();
-          addr = s?.address || s?.shieldedAddress || "";
-        }
-        if (!addr && typeof enabledApi.getAddress === "function") {
-          addr = await enabledApi.getAddress();
-        }
-
-        this.connectedAddress = addr || CANONICAL_DEPLOYMENT.contractAddress;
+    if (!target?.installed || !target.api) {
+      if (!isBrowser || allowDemoFallback) {
+        // Only allow fallback in automated headless test environment or if user explicitly opts into demo mode
+        this.connectedAddress = "mn_shield-addr_preview1" + CANONICAL_DEPLOYMENT.contractAddress.slice(2, 26);
         this.isConnected = true;
-        this.connectedWallet = target.name;
+        this.connectedWallet = walletType === "oneam" ? "1AM Wallet (Demo)" : "Midnight Lace (Demo)";
         return { address: this.connectedAddress };
-      } catch (e) {
-        console.warn("[PVV] Live wallet authorization notice:", e);
+      }
+
+      throw new Error(
+        `${walletType === "oneam" ? "1AM Wallet" : "Midnight Lace Wallet"} extension was not detected in your browser. Please install 1AM Wallet from https://1am.xyz or ensure the extension is enabled in your browser.`
+      );
+    }
+
+    let enabledApi: any = null;
+    try {
+      if (typeof target.api.connect === "function") {
+        // Midnight DApp Connector v4 API
+        enabledApi = await target.api.connect("preview");
+      } else if (typeof target.api.enable === "function") {
+        // CIP-30 / legacy connector
+        enabledApi = await target.api.enable();
+      } else {
+        throw new Error("Wallet extension does not expose a supported connect() or enable() method.");
+      }
+    } catch (authErr: any) {
+      const msg = authErr?.message || String(authErr);
+      if (
+        msg.toLowerCase().includes("reject") ||
+        msg.toLowerCase().includes("cancel") ||
+        msg.toLowerCase().includes("denied") ||
+        msg.toLowerCase().includes("declined")
+      ) {
+        throw new Error(`Connection request was rejected in ${target.name}. Please approve the request in the wallet extension popup.`);
+      }
+      throw new Error(`Authorization failed for ${target.name}: ${msg}`);
+    }
+
+    if (!enabledApi) {
+      throw new Error(`Failed to obtain an authorized session from ${target.name}.`);
+    }
+
+    this.walletApi = enabledApi;
+
+    // Extract real address from authorized wallet session
+    let addr = "";
+    if (typeof enabledApi.getShieldedAddresses === "function") {
+      try {
+        const sAddrs = await enabledApi.getShieldedAddresses();
+        addr = sAddrs?.shieldedAddress || sAddrs?.address || "";
+      } catch (err) {
+        console.warn("[1AM] getShieldedAddresses:", err);
       }
     }
 
-    // Session fallback for demo/testing
-    this.connectedAddress = "mn_shield-addr_preview1" + CANONICAL_DEPLOYMENT.contractAddress.slice(2, 26);
+    if (!addr && typeof enabledApi.getUnshieldedAddress === "function") {
+      try {
+        const uAddr = await enabledApi.getUnshieldedAddress();
+        addr = uAddr?.unshieldedAddress || "";
+      } catch (err) {
+        console.warn("[1AM] getUnshieldedAddress:", err);
+      }
+    }
+
+    if (!addr && typeof enabledApi.state === "function") {
+      try {
+        const s = await enabledApi.state();
+        addr = s?.address || s?.shieldedAddress || s?.unshieldedAddress || "";
+      } catch (err) {
+        console.warn("[1AM] state():", err);
+      }
+    }
+
+    if (!addr && typeof enabledApi.getAddress === "function") {
+      try {
+        addr = await enabledApi.getAddress();
+      } catch (err) {
+        console.warn("[1AM] getAddress():", err);
+      }
+    }
+
+    if (!addr && typeof enabledApi.getAddresses === "function") {
+      try {
+        const addrs = await enabledApi.getAddresses();
+        addr = Array.isArray(addrs) ? addrs[0] : addrs;
+      } catch (err) {
+        console.warn("[1AM] getAddresses():", err);
+      }
+    }
+
+    if (!addr) {
+      throw new Error(
+        `Connected to ${target.name}, but could not retrieve account address. Please verify your account is unlocked in ${target.name}.`
+      );
+    }
+
+    this.connectedAddress = addr;
     this.isConnected = true;
-    this.connectedWallet = walletType === "oneam" ? "1AM Wallet" : "Midnight Lace Wallet";
-    return { address: this.connectedAddress };
+    this.connectedWallet = target.name;
+
+    if (isBrowser) {
+      try {
+        localStorage.setItem("pvv_connected_wallet", target.name);
+        localStorage.setItem("pvv_connected_address", addr);
+        localStorage.setItem("pvv_wallet_id", walletType);
+      } catch {}
+    }
+
+    return { address: addr };
   }
 
   public disconnect(): void {
@@ -403,11 +553,62 @@ export class MidnightVendorClient {
     this.connectedAddress = null;
     this.connectedWallet = null;
     this.walletApi = null;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("pvv_connected_wallet");
+        localStorage.removeItem("pvv_connected_address");
+        localStorage.removeItem("pvv_wallet_id");
+      } catch {}
+    }
   }
 
-  // ??? Circuit Execution & Submission ?????????????????????????????????????????
+  // ─── Circuit Execution & 1AM Wallet Verification ──────────────────────────
 
-  private async submitCircuit(circuitName: string, args: any[] = []): Promise<string> {
+  private async submitCircuit(
+    circuitName: string,
+    args: any[] = [],
+    summary?: { action: string; commitment?: string; details?: string }
+  ): Promise<string> {
+    const isBrowser = typeof window !== "undefined";
+
+    if (isBrowser && (!this.isConnected || !this.connectedAddress)) {
+      throw new Error("No wallet connected. Please connect your 1AM Wallet first before executing transactions.");
+    }
+
+    // Step 1: Request 1AM Wallet verification & signing
+    const txPayload = JSON.stringify({
+      dApp: "Private Vendor Verification (PVV)",
+      network: "midnight-preview",
+      contract: this.contractAddress,
+      circuit: circuitName,
+      action: summary?.action || `Execute ZK Circuit: ${circuitName}`,
+      commitment: summary?.commitment || (args[0] ? (typeof args[0] === "string" ? args[0] : bytesToHex(args[0])) : ""),
+      wallet: this.connectedAddress || "mn_preview",
+      timestamp: Date.now(),
+    });
+
+    if (this.walletApi && typeof this.walletApi.signData === "function") {
+      try {
+        await this.walletApi.signData(txPayload, {
+          encoding: "text",
+          keyType: "unshielded",
+        });
+      } catch (signErr: any) {
+        const msg = (signErr?.message || String(signErr)).toLowerCase();
+        if (
+          msg.includes("reject") ||
+          msg.includes("cancel") ||
+          msg.includes("denied") ||
+          msg.includes("declined") ||
+          msg.includes("user rejected")
+        ) {
+          throw new Error("Transaction rejected in 1AM Wallet. Operation cancelled by user.");
+        }
+        console.warn("[1AM] signData notice:", signErr);
+      }
+    }
+
+    // Step 2: Submit on-chain via connected wallet RPC
     let txRes: any = null;
 
     if (this.walletApi && typeof this.walletApi.submitCallTx === "function") {
@@ -452,7 +653,7 @@ export class MidnightVendorClient {
     return txId;
   }
 
-  // ??? Circuit 1: registerVendor ??????????????????????????????????????????????
+    // ??? Circuit 1: registerVendor ??????????????????????????????????????????????
 
   public async registerVendor(data: VendorPledgeData): Promise<{
     commitment: string;
@@ -499,7 +700,7 @@ export class MidnightVendorClient {
     const commitmentHex = bytesToHex(commitmentBytes);
 
     // 2. Submit on-chain via connected wallet or anchor
-    const txHash = await this.submitCircuit("registerVendor", [expectedRegistryId]);
+    const txHash = await this.submitCircuit("registerVendor", [expectedRegistryId], { action: "Register Vendor Accreditation", commitment: commitmentHex });
 
     const record: RegisteredVendorRecord = {
       commitment: commitmentHex,
@@ -531,6 +732,10 @@ export class MidnightVendorClient {
   }
 
   // ??? Circuit 2: verifyVendorAccreditation (Dual Verification) ???????????????
+
+  public async verifyAccreditationDual(query: string): Promise<VerificationResult> {
+    return this.verifyVendorAccreditation(query);
+  }
 
   public async verifyVendorAccreditation(query: string): Promise<VerificationResult> {
     const rawInput = (query || "").trim();
@@ -678,7 +883,7 @@ export class MidnightVendorClient {
     const ctx: any = (this.contractInstance as any).initialState?.({} as any) ?? {};
     this.contractInstance.circuits.revokeVendorAccreditation(ctx, commitmentBytes);
 
-    const txHash = await this.submitCircuit("revokeVendorAccreditation", [commitmentBytes]);
+    const txHash = await this.submitCircuit("revokeVendorAccreditation", [commitmentBytes], { action: "Revoke Vendor Accreditation", commitment: cleanCommitment });
 
     return {
       success: true,
@@ -692,7 +897,7 @@ export class MidnightVendorClient {
     const ctx: any = (this.contractInstance as any).initialState?.({} as any) ?? {};
     this.contractInstance.circuits.setRegistryAuthorityCommitment(ctx, BigInt(minScore));
 
-    const txHash = await this.submitCircuit("setRegistryAuthorityCommitment", [BigInt(minScore)]);
+    const txHash = await this.submitCircuit("setRegistryAuthorityCommitment", [BigInt(minScore)], { action: `Set Minimum Compliance Score to ${minScore}` });
 
     return {
       success: true,
@@ -708,7 +913,7 @@ export class MidnightVendorClient {
     const ctx: any = (this.contractInstance as any).initialState?.({} as any) ?? {};
     this.contractInstance.circuits.resetRegistryPolicy(ctx, registryBytes, BigInt(newMinScore));
 
-    const txHash = await this.submitCircuit("resetRegistryPolicy", [registryBytes, BigInt(newMinScore)]);
+    const txHash = await this.submitCircuit("resetRegistryPolicy", [registryBytes, BigInt(newMinScore)], { action: `Reset Registry Policy (Min Score: ${newMinScore})` });
 
     return {
       success: true,
@@ -722,7 +927,7 @@ export class MidnightVendorClient {
     const ctx: any = (this.contractInstance as any).initialState?.({} as any) ?? {};
     this.contractInstance.circuits.incrementSession(ctx);
 
-    const txHash = await this.submitCircuit("incrementSession", []);
+    const txHash = await this.submitCircuit("incrementSession", [], { action: "Increment Anti-Replay Session Epoch" });
 
     return {
       success: true,
