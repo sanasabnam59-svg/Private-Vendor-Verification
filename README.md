@@ -2,7 +2,7 @@
 > **A Privacy-Preserving Zero-Knowledge Supplier Due Diligence & Accreditation Protocol on the Midnight Network**
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Private--Vendor--Verification-181717?style=for-the-badge&logo=github)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
-[![YouTube Demo](https://img.shields.io/badge/YouTube-Watch%20Demo%20Video-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/cV5JCAbGyZo)
+[![YouTube Demo](https://img.shields.io/badge/YouTube-Watch%20Demo%20Video-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/4eYF2BHCH9A)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20App-0070f3?style=for-the-badge&logo=vercel)](https://private-vendor-verification.vercel.app/)
 [![Midnight Network](https://img.shields.io/badge/Midnight-Preview%20Testnet-8b5cf6?style=for-the-badge)](https://preview.midnightexplorer.com/contracts/0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f)
 [![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-10b981?style=for-the-badge&logo=githubactions)](https://github.com/sanasabnam59-svg/Private-Vendor-Verification/actions/workflows/ci.yml)
@@ -127,7 +127,7 @@ Terminal execution showing 100% test pass rate across all 38 contract circuits, 
 - [x] **Contract Deployed to Preprod/Preview with Verifiable Address**: Deployed on Midnight Preview at `0xf300c8ef23885f1cc04e6879ec5085f0845eff81c79d5ef6066f176af11df09f` (verified with live indexer queries returning 11,954 raw state bytes).
 - [x] **Public GitHub Repository with README**: [https://github.com/sanasabnam59-svg/Private-Vendor-Verification](https://github.com/sanasabnam59-svg/Private-Vendor-Verification)
 - [x] **Live Demo Link**: [https://private-vendor-verification.vercel.app/](https://private-vendor-verification.vercel.app/)
-- [x] **Demo Video**: [https://youtu.be/cV5JCAbGyZo](https://youtu.be/cV5JCAbGyZo)
+- [x] **Demo Video**: [https://youtu.be/4eYF2BHCH9A](https://youtu.be/4eYF2BHCH9A)
 - [x] **Minimum 8 Meaningful Commits**: Exceeded with 25+ structured commits strictly authored by `sanasabnam59-svg`.
 
 ---
@@ -162,9 +162,9 @@ The core design of Private Vendor Verification adheres to Midnight's selective d
 
 ## 🎬 Live Demo Video
 
-[![PVV Video Walkthrough](https://img.shields.io/badge/YouTube-Watch%20Live%20Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/cV5JCAbGyZo)
+[![PVV Video Walkthrough](https://img.shields.io/badge/YouTube-Watch%20Live%20Demo-FF0000?style=for-the-badge&logo=youtube)](https://youtu.be/4eYF2BHCH9A)
 
-▶️ **Watch the Full Video Walkthrough on YouTube**: [https://youtu.be/cV5JCAbGyZo](https://youtu.be/cV5JCAbGyZo)
+▶️ **Watch the Full Video Walkthrough on YouTube**: [https://youtu.be/4eYF2BHCH9A](https://youtu.be/4eYF2BHCH9A)
 
 ### What the Demo Highlights:
 1. **Wallet Integration**: Connecting the official Midnight Lace / 1AM extension via `@midnight-ntwrk/dapp-connector-api`.
